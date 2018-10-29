@@ -19,11 +19,46 @@ namespace System.Management.Automation.Unicode
 
     public class IntroBenchmarkBaseline
     {
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         [ArgumentsSource(nameof(Data))]
-        public void CoreFXCompare(string a, string b)
+        public void CoreFXCompareOrdinal(string a, string b)
+        {
+            string.Compare(a, b, StringComparison.Ordinal);
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Data))]
+        public void CoreFXCompareOrdinalIgnoreCase(string a, string b)
         {
             string.Compare(a, b, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Data))]
+        public void CoreFXCompareInvariantCulture(string a, string b)
+        {
+            string.Compare(a, b, StringComparison.InvariantCulture);
+        }
+
+        [Benchmark(Baseline = true)]
+        [ArgumentsSource(nameof(Data))]
+        public void CoreFXCompareInvariantCultureIgnoreCase(string a, string b)
+        {
+            string.Compare(a, b, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Data))]
+        public void CoreFXCompareCurrentCulture(string a, string b)
+        {
+            string.Compare(a, b, StringComparison.CurrentCulture);
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Data))]
+        public void CoreFXCompareCurrentCultureIgnoreCase(string a, string b)
+        {
+            string.Compare(a, b, StringComparison.CurrentCultureIgnoreCase);
         }
 
         [Benchmark]
@@ -33,133 +68,35 @@ namespace System.Management.Automation.Unicode
             SimpleCaseFolding.CompareFolded(a, b);
         }
 
+        [Benchmark]
+        [ArgumentsSource(nameof(Data))]
+        public void ToLowerRu(string a, string b)
+        {
+            a.ToLower();
+            b.ToLower();
+        }
+
+        static System.Globalization.CultureInfo rus = System.Globalization.CultureInfo.GetCultureInfo("ru-RU");
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Data))]
+        public void ToLowerInvariant(string a, string b)
+        {
+            a.ToLowerInvariant();
+            b.ToLowerInvariant();
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Data))]
+        public void TestStringFold(string a, string b)
+        {
+            a.Fold();
+            b.Fold();
+        }
+
         public IEnumerable<object[]> Data()
         {
-            yield return new object[] { "CompareFolded", "CompareFolded" };
-        }
-
-    }
-
-    /// <summary>
-    /// </summary>
-    internal static partial class SimpleCaseFolding
-    {
-        /// <summary>
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static char Fold(char ch)
-        {
-            var index = s_simpleCaseFoldingTableSMPaneIn.BinarySearch(ch);
-
-            if (index < 0)
-            {
-                return char.MinValue;
-            }
-
-            return s_simpleCaseFoldingTableSMPaneOut[index];
-        }
-
-        /// <summary>
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string Fold(this string source)
-        {
-            return string.Create(source.Length, source , (chars, sourceString) =>
-            {
-                SpanFold(chars, sourceString);
-            });
-        }
-
-        /// <summary>
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Fold(this Span<char> source)
-        {
-            SpanFold(source, source);
-        }
-
-        /// <summary>
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<char> Fold(this ReadOnlySpan<char> source)
-        {
-            Span<char> result = new char[source.Length];
-
-            SpanFold(result, source);
-
-            return result;
-        }
-
-        internal const char HIGH_SURROGATE_START = '\ud800';
-        internal const char HIGH_SURROGATE_END = '\udbff';
-        internal const char LOW_SURROGATE_START = '\udc00';
-        internal const char LOW_SURROGATE_END = '\udfff';
-        internal const int  HIGH_SURROGATE_RANGE = 0x3FF;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SpanFold(Span<char> result, ReadOnlySpan<char> source)
-        {
-            for (int i = 0; i < source.Length; i++)
-            {
-                var ch = source[i];
-
-                if (ch < HIGH_SURROGATE_START)
-                {
-                    result[i] = Fold(ch);
-                }
-            }
-        }
-
-        /// <summary>
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int IndexOfOrdinalIgnoreCase(this string source, char ch)
-        {
-            var foldedChar = Fold(ch);
-
-            for (int i = 0; i < source.Length; i++)
-            {
-                if (Fold(source[i]) == foldedChar)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int CompareFolded(this string strA, string strB)
-        {
-            if (object.ReferenceEquals(strA, strB))
-            {
-                return 0;
-            }
-
-            if (strA == null)
-            {
-                return -1;
-            }
-
-            if (strB == null)
-            {
-                return 1;
-            }
-
-            var length = Math.Min(strA.Length, strB.Length);
-
-            for (int i = 0; i < length; i++)
-            {
-                var c = Fold(strA[i]) - Fold(strA[i]);
-                if (c != 0)
-                {
-                    return c;
-                }
-            }
-
-            return strA.Length - strB.Length;
+            yield return new object[] { "CompareFolded1", "CompareFolded" };
         }
     }
 }

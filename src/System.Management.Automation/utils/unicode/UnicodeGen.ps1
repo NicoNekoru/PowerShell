@@ -21,21 +21,13 @@ function Start-Gen
 
     $SimpleCaseFoldingTableBMPaneIn = @()
     $SimpleCaseFoldingTableBMPaneOut = @()
-    $SimpleCaseFoldingTablePane01In = @()
-    $SimpleCaseFoldingTablePane01Out = @()
     $lines | ForEach-Object {
         $blocks = $_ -split "; "
         if ($blocks[1] -eq "C" -or $blocks[1] -eq "S") {
-            if ($blocks[0].Length -le 4) {
-                $SimpleCaseFoldingTableBMPaneIn += "'\x" + $blocks[0] + "'"
-                $SimpleCaseFoldingTableBMPaneOut += "'\x" + $blocks[2] + "'"
-            } else {
-                $SimpleCaseFoldingTablePane01In += ConvertFromUtf32 ("0x"+$blocks[0])
-                $SimpleCaseFoldingTablePane01Out += ConvertFromUtf32 ("0x"+$blocks[2])
-
-                #Write-Host "$blocks[0] ($SimpleCaseFoldingTablePane01In) - $blocks[2] ($(ConvertFromUtf32 ("0x"+$blocks[2])))"
-                #Sleep 5
-            }
+            $SimpleCaseFoldingTableBMPaneIn += "0x" + $blocks[0] + ""
+            $SimpleCaseFoldingTableBMPaneOut += "0x" + $blocks[2] + ""
+            #Write-Host "$blocks[0] ($SimpleCaseFoldingTablePane01In) - $blocks[2] ($(ConvertFromUtf32 ("0x"+$blocks[2])))"
+            #Sleep 5
         }
     }
 
@@ -62,25 +54,16 @@ namespace System.Management.Automation.Unicode
         /// <summary>
         /// Lookup a char in the 's_simpleCaseFoldingTableSMPaneIn' table. Get a index. Use the index to lookup target char in 's_simpleCaseFoldingTableInOut'
         /// </summary>
-        private static readonly List<char> s_simpleCaseFoldingTableSMPaneIn = new List<char>()
+        private static readonly List<Int32> s_simpleCaseFoldingTableSMPaneIn = new List<Int32>()
         {
             $($SimpleCaseFoldingTableBMPaneIn -join ",`n            ")
         };
 
-        private static readonly List<char> s_simpleCaseFoldingTableSMPaneOut = new List<char>()
+        private static readonly List<Int32> s_simpleCaseFoldingTableSMPaneOut = new List<Int32>()
         {
             $($SimpleCaseFoldingTableBMPaneOut -join ",`n            ")
         };
 
-        private static readonly List<UInt32> s_simpleCaseFoldingTablePane01In = new List<UInt32>()
-        {
-            $($SimpleCaseFoldingTablePane01In -join ",`n            ")
-        };
-
-        private static readonly List<UInt32> s_simpleCaseFoldingTablePane01Out = new List<UInt32>()
-        {
-            $($SimpleCaseFoldingTablePane01Out -join ",`n            ")
-        };
     }
 }
 "@
