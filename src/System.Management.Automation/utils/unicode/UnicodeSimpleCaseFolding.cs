@@ -18,14 +18,8 @@ namespace System.Management.Automation.Unicode
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static char Fold(char ch)
         {
-            var index = s_simpleCaseFoldingTableSMPaneIn.BinarySearch(ch);
+            return (char)s_simpleCaseFoldingTableBMPane1[ch];
 
-            if (index < 0)
-            {
-                return char.MinValue;
-            }
-
-            return (char)s_simpleCaseFoldingTableSMPaneOut[index];
         }
 
         /// <summary>
