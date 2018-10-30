@@ -19,13 +19,29 @@ function Start-Gen
 
     $lines = Get-Content -LiteralPath $CaseFoldingTxt | Where-Object { !$_.StartsWith("#") -and $_ -ne "" }
 
-    $SimpleCaseFoldingTableBMPaneIn = @()
-    $SimpleCaseFoldingTableBMPaneOut = @()
+    $SimpleCaseFoldingTableBMPane1 = [int[]]::new(65535)
+    $SimpleCaseFoldingTableBMPane2 = [int[]]::new(65535)
+    for ($i = 0; $i -lt 65535; $i++)
+    {
+        $SimpleCaseFoldingTableBMPane1[$i] = $i
+        $SimpleCaseFoldingTableBMPane2[$i] = $i
+    }
+
     $lines | ForEach-Object {
         $blocks = $_ -split "; "
         if ($blocks[1] -eq "C" -or $blocks[1] -eq "S") {
-            $SimpleCaseFoldingTableBMPaneIn += "0x" + $blocks[0] + ""
-            $SimpleCaseFoldingTableBMPaneOut += "0x" + $blocks[2] + ""
+            try {
+                $line = [convert]::ToInt32($blocks[0], 16)
+                $value = [convert]::ToInt32($blocks[2], 16)
+            } catch {
+                Write-Host $blocks[0]
+                Write-Host $blocks[2]
+            }
+            if ($line -le 65535) {
+                $SimpleCaseFoldingTableBMPane1[$line] = $value
+            } else {
+                $SimpleCaseFoldingTableBMPane2[$line - 65535] = $value - 65535
+            }
             #Write-Host "$blocks[0] ($SimpleCaseFoldingTablePane01In) - $blocks[2] ($(ConvertFromUtf32 ("0x"+$blocks[2])))"
             #Sleep 5
         }
@@ -52,16 +68,16 @@ namespace System.Management.Automation.Unicode
     internal static partial class SimpleCaseFolding
     {
         /// <summary>
-        /// Lookup a char in the 's_simpleCaseFoldingTableSMPaneIn' table. Get a index. Use the index to lookup target char in 's_simpleCaseFoldingTableInOut'
+        /// Lookup a char in the 's_simpleCaseFoldingTableBMPane1' table. Get a index. Use the index to lookup target char in 's_simpleCaseFoldingTableInOut'
         /// </summary>
-        private static readonly List<Int32> s_simpleCaseFoldingTableSMPaneIn = new List<Int32>()
+        private static readonly List<Int32> s_simpleCaseFoldingTableBMPane1 = new List<Int32>()
         {
-            $($SimpleCaseFoldingTableBMPaneIn -join ",`n            ")
+            $($SimpleCaseFoldingTableBMPane1 -join ",`n            ")
         };
 
-        private static readonly List<Int32> s_simpleCaseFoldingTableSMPaneOut = new List<Int32>()
+        private static readonly List<Int32> s_simpleCaseFoldingTableBMPane2 = new List<Int32>()
         {
-            $($SimpleCaseFoldingTableBMPaneOut -join ",`n            ")
+            $($SimpleCaseFoldingTableBMPane2 -join ",`n            ")
         };
 
     }
