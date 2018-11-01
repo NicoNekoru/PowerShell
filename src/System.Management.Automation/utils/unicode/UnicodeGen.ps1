@@ -19,12 +19,12 @@ function Start-Gen
 
     $lines = Get-Content -LiteralPath $CaseFoldingTxt | Where-Object { !$_.StartsWith("#") -and $_ -ne "" }
 
-    $SimpleCaseFoldingTableBMPane1 = [int[]]::new(65535)
-    $SimpleCaseFoldingTableBMPane2 = [int[]]::new(65535)
-    for ($i = 0; $i -lt 65535; $i++)
+    $SimpleCaseFoldingTableBMPane1 = [string[]]::new(65536)
+    $SimpleCaseFoldingTableBMPane2 = [string[]]::new(65536)
+    for ($i = 0; $i -lt 65536; $i++)
     {
-        $SimpleCaseFoldingTableBMPane1[$i] = $i
-        $SimpleCaseFoldingTableBMPane2[$i] = $i
+        $SimpleCaseFoldingTableBMPane1[$i] = "(char)"+$i
+        $SimpleCaseFoldingTableBMPane2[$i] = "(char)"+$i
     }
 
     $lines | ForEach-Object {
@@ -38,9 +38,9 @@ function Start-Gen
                 Write-Host $blocks[2]
             }
             if ($line -le 65535) {
-                $SimpleCaseFoldingTableBMPane1[$line] = $value
+                $SimpleCaseFoldingTableBMPane1[$line] = "(char)"+$value
             } else {
-                $SimpleCaseFoldingTableBMPane2[$line - 65535] = $value - 65535
+                $SimpleCaseFoldingTableBMPane2[$line - 65536] = "(char)"+($value - 65536)
             }
             #Write-Host "$blocks[0] ($SimpleCaseFoldingTablePane01In) - $blocks[2] ($(ConvertFromUtf32 ("0x"+$blocks[2])))"
             #Sleep 5
@@ -70,12 +70,12 @@ namespace System.Management.Automation.Unicode
         /// <summary>
         /// Lookup a char in the 's_simpleCaseFoldingTableBMPane1' table. Get a index. Use the index to lookup target char in 's_simpleCaseFoldingTableInOut'
         /// </summary>
-        private static readonly List<Int32> s_simpleCaseFoldingTableBMPane1 = new List<Int32>()
+        private static readonly char[] s_simpleCaseFoldingTableBMPane1 = new char[]
         {
             $($SimpleCaseFoldingTableBMPane1 -join ",`n            ")
         };
 
-        private static readonly List<Int32> s_simpleCaseFoldingTableBMPane2 = new List<Int32>()
+        private static readonly char[] s_simpleCaseFoldingTableBMPane2 = new char[]
         {
             $($SimpleCaseFoldingTableBMPane2 -join ",`n            ")
         };

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-// The file automatically generated at 201810291838
+// The file automatically generated at 201810303545
 // Source file is loaded from file http://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt
 
 // # CaseFolding-11.0.0.txt // # Date: 2018-01-31, 08:20:09 GMT // # © 2018 Unicode®, Inc. // # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries. // # For terms of use, see http://www.unicode.org/terms_of_use.html // #
@@ -18,9 +18,9 @@ namespace System.Management.Automation.Unicode
         /// <summary>
         /// Lookup a char in the 's_simpleCaseFoldingTableBMPane1' table. Get a index. Use the index to lookup target char in 's_simpleCaseFoldingTableInOut'
         /// </summary>
-        public static readonly Int32[] s_simpleCaseFoldingTableBMPane1 = new Int32[]
+        public static readonly char[] s_simpleCaseFoldingTableBMPane1 = new char[]
         {
-            0,
+            (char)0,
             1,
             2,
             3,
@@ -65554,10 +65554,11 @@ namespace System.Management.Automation.Unicode
             65531,
             65532,
             65533,
-            65534
+            65534,
+            65535
         };
 
-        private static readonly List<Int32> s_simpleCaseFoldingTableBMPane2 = new List<Int32>()
+        private static readonly List<ushort> s_simpleCaseFoldingTableBMPane2 = new List<ushort>()
         {
             0,
             1,
@@ -131093,7 +131094,8 @@ namespace System.Management.Automation.Unicode
             65531,
             65532,
             65533,
-            65534
+            65534,
+            65535
         };
 
     }
