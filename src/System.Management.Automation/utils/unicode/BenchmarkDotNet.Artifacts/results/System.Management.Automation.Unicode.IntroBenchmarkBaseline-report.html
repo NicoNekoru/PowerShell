@@ -23,18 +23,20 @@ Frequency=3410090 Hz, Resolution=293.2474 ns, Timer=TSC
 <pre><code></code></pre>
 
 <table>
-<thead><tr><th>                           Method</th><th>       a</th><th>      b</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Scaled</th><th>ScaledSD</th>
+<thead><tr><th>                         Method</th><th>  StrA</th><th> StrB</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>CoreFXCompareOrdinal</td><td>CaseFolding1</td><td>CaseFolding</td><td>16.79 ns</td><td>0.3706 ns</td><td>0.4412 ns</td><td>16.75 ns</td><td>0.22</td><td>0.01</td>
-</tr><tr><td>CoreFXCompareInvariantCultureIgnoreCase</td><td>CaseFolding1</td><td>CaseFolding</td><td>74.76 ns</td><td>1.5277 ns</td><td>2.6756 ns</td><td>74.37 ns</td><td>1.00</td><td>0.00</td>
-</tr><tr><td>ToLowerInvariant</td><td>CaseFolding1</td><td>CaseFolding</td><td>80.12 ns</td><td>1.6634 ns</td><td>3.4721 ns</td><td>79.05 ns</td><td>1.07</td><td>0.06</td>
-</tr><tr><td>TestStringFoldArray</td><td>CaseFolding1</td><td>CaseFolding</td><td>196.48 ns</td><td>49.0810 ns</td><td>144.7166 ns</td><td>293.25 ns</td><td>2.63</td><td>1.93</td>
-</tr><tr><td>TestStringFoldbyChar</td><td>CaseFolding1</td><td>CaseFolding</td><td>216.88 ns</td><td>44.8394 ns</td><td>129.3718 ns</td><td>293.25 ns</td><td>2.90</td><td>1.73</td>
-</tr><tr><td>CoreFXCompareOrdinal</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ</td><td>17.09 ns</td><td>0.3828 ns</td><td>0.6289 ns</td><td>16.86 ns</td><td>0.16</td><td>0.01</td>
-</tr><tr><td>CoreFXCompareInvariantCultureIgnoreCase</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ</td><td>108.69 ns</td><td>2.2223 ns</td><td>4.4382 ns</td><td>107.85 ns</td><td>1.00</td><td>0.00</td>
-</tr><tr><td>ToLowerInvariant</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ</td><td>203.90 ns</td><td>4.1304 ns</td><td>6.4306 ns</td><td>201.77 ns</td><td>1.88</td><td>0.09</td>
-</tr><tr><td>TestStringFoldArray</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ</td><td>293.25 ns</td><td>0.0000 ns</td><td>0.0000 ns</td><td>293.25 ns</td><td>2.70</td><td>0.10</td>
-</tr><tr><td>TestStringFoldbyChar</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯЯЯ</td><td>289.92 ns</td><td>11.3498 ns</td><td>31.2606 ns</td><td>293.25 ns</td><td>2.67</td><td>0.30</td>
+</thead><tbody><tr><td>CoreFXCompareOrdinal</td><td>CaseFolding1</td><td>CaseFolding</td><td>15.96 ns</td><td>0.3130 ns</td><td>0.2613 ns</td><td>15.90 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareOrdinalIgnoreCase</td><td>CaseFolding1</td><td>CaseFolding</td><td>27.97 ns</td><td>0.6491 ns</td><td>0.5754 ns</td><td>27.80 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareInvariantCulture</td><td>CaseFolding1</td><td>CaseFolding</td><td>77.40 ns</td><td>1.9387 ns</td><td>1.6189 ns</td><td>76.93 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCulture</td><td>CaseFolding1</td><td>CaseFolding</td><td>204.81 ns</td><td>4.0018 ns</td><td>3.3417 ns</td><td>203.59 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCultureIgnoreCase</td><td>CaseFolding1</td><td>CaseFolding</td><td>213.71 ns</td><td>13.0362 ns</td><td>16.9508 ns</td><td>204.92 ns</td><td>0 B</td>
+</tr><tr><td>CompareFolded</td><td>CaseFolding1</td><td>CaseFolding</td><td>31.09 ns</td><td>0.6045 ns</td><td>0.4720 ns</td><td>30.89 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareOrdinal</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>16.02 ns</td><td>0.3506 ns</td><td>0.3280 ns</td><td>15.88 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareOrdinalIgnoreCase</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>35.66 ns</td><td>0.7217 ns</td><td>0.9879 ns</td><td>35.31 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareInvariantCulture</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>98.16 ns</td><td>1.8872 ns</td><td>1.8535 ns</td><td>97.57 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCulture</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>205.69 ns</td><td>4.1180 ns</td><td>3.6505 ns</td><td>204.26 ns</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCultureIgnoreCase</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>209.85 ns</td><td>4.2032 ns</td><td>10.5451 ns</td><td>205.31 ns</td><td>0 B</td>
+</tr><tr><td>CompareFolded</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>31.87 ns</td><td>0.6672 ns</td><td>1.7693 ns</td><td>30.99 ns</td><td>0 B</td>
 </tr></tbody></table>
 </body>
 </html>
