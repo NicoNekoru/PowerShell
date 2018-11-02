@@ -23,20 +23,20 @@ Frequency=3410090 Hz, Resolution=293.2474 ns, Timer=TSC
 <pre><code></code></pre>
 
 <table>
-<thead><tr><th>                         Method</th><th>  StrA</th><th> StrB</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Allocated</th>
+<thead><tr><th>                         Method</th><th>  StrA</th><th> StrB</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Scaled</th><th>ScaledSD</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>CoreFXCompareOrdinal</td><td>CaseFolding1</td><td>CaseFolding</td><td>15.96 ns</td><td>0.3130 ns</td><td>0.2613 ns</td><td>15.90 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareOrdinalIgnoreCase</td><td>CaseFolding1</td><td>CaseFolding</td><td>27.97 ns</td><td>0.6491 ns</td><td>0.5754 ns</td><td>27.80 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareInvariantCulture</td><td>CaseFolding1</td><td>CaseFolding</td><td>77.40 ns</td><td>1.9387 ns</td><td>1.6189 ns</td><td>76.93 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareRussianCulture</td><td>CaseFolding1</td><td>CaseFolding</td><td>204.81 ns</td><td>4.0018 ns</td><td>3.3417 ns</td><td>203.59 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareRussianCultureIgnoreCase</td><td>CaseFolding1</td><td>CaseFolding</td><td>213.71 ns</td><td>13.0362 ns</td><td>16.9508 ns</td><td>204.92 ns</td><td>0 B</td>
-</tr><tr><td>CompareFolded</td><td>CaseFolding1</td><td>CaseFolding</td><td>31.09 ns</td><td>0.6045 ns</td><td>0.4720 ns</td><td>30.89 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareOrdinal</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>16.02 ns</td><td>0.3506 ns</td><td>0.3280 ns</td><td>15.88 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareOrdinalIgnoreCase</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>35.66 ns</td><td>0.7217 ns</td><td>0.9879 ns</td><td>35.31 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareInvariantCulture</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>98.16 ns</td><td>1.8872 ns</td><td>1.8535 ns</td><td>97.57 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareRussianCulture</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>205.69 ns</td><td>4.1180 ns</td><td>3.6505 ns</td><td>204.26 ns</td><td>0 B</td>
-</tr><tr><td>CoreFXCompareRussianCultureIgnoreCase</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>209.85 ns</td><td>4.2032 ns</td><td>10.5451 ns</td><td>205.31 ns</td><td>0 B</td>
-</tr><tr><td>CompareFolded</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>31.87 ns</td><td>0.6672 ns</td><td>1.7693 ns</td><td>30.99 ns</td><td>0 B</td>
+</thead><tbody><tr><td>CoreFXCompareOrdinal</td><td>CaseFolding1</td><td>CaseFolding</td><td>16.85 ns</td><td>0.3974 ns</td><td>0.6303 ns</td><td>16.67 ns</td><td>1.00</td><td>0.00</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareOrdinalIgnoreCase</td><td>CaseFolding1</td><td>CaseFolding</td><td>28.69 ns</td><td>0.6085 ns</td><td>1.1428 ns</td><td>28.14 ns</td><td>1.70</td><td>0.09</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareInvariantCulture</td><td>CaseFolding1</td><td>CaseFolding</td><td>89.84 ns</td><td>2.7482 ns</td><td>7.9731 ns</td><td>88.84 ns</td><td>5.34</td><td>0.51</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCulture</td><td>CaseFolding1</td><td>CaseFolding</td><td>216.16 ns</td><td>5.1994 ns</td><td>14.8342 ns</td><td>209.80 ns</td><td>12.85</td><td>0.98</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCultureIgnoreCase</td><td>CaseFolding1</td><td>CaseFolding</td><td>206.85 ns</td><td>4.1628 ns</td><td>5.2646 ns</td><td>205.35 ns</td><td>12.29</td><td>0.52</td><td>0 B</td>
+</tr><tr><td>CompareFolded</td><td>CaseFolding1</td><td>CaseFolding</td><td>23.33 ns</td><td>0.4876 ns</td><td>0.5218 ns</td><td>23.23 ns</td><td>1.39</td><td>0.06</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareOrdinal</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>16.57 ns</td><td>0.3967 ns</td><td>0.9505 ns</td><td>16.31 ns</td><td>1.00</td><td>0.00</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareOrdinalIgnoreCase</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>35.89 ns</td><td>0.7396 ns</td><td>1.2356 ns</td><td>35.28 ns</td><td>2.17</td><td>0.13</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareInvariantCulture</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>98.38 ns</td><td>1.9520 ns</td><td>2.1697 ns</td><td>97.41 ns</td><td>5.95</td><td>0.33</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCulture</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>208.95 ns</td><td>4.6181 ns</td><td>8.4444 ns</td><td>205.06 ns</td><td>12.64</td><td>0.82</td><td>0 B</td>
+</tr><tr><td>CoreFXCompareRussianCultureIgnoreCase</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>206.56 ns</td><td>4.0916 ns</td><td>5.3202 ns</td><td>205.15 ns</td><td>12.50</td><td>0.72</td><td>0 B</td>
+</tr><tr><td>CompareFolded</td><td>ЯЯЯЯЯЯЯЯЯЯЯ1</td><td>ЯЯЯЯЯЯЯЯЯЯЯ</td><td>23.46 ns</td><td>0.8557 ns</td><td>1.1995 ns</td><td>22.89 ns</td><td>1.42</td><td>0.10</td><td>0 B</td>
 </tr></tbody></table>
 </body>
 </html>

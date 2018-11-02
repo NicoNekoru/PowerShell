@@ -242,7 +242,7 @@ namespace System.Management.Automation.Unicode
                     continue;
                 }
 
-                if (ch < HIGH_SURROGATE_START || ch > LOW_SURROGATE_END)
+                if (IsNotSurrogate(ch))
                 {
                     //result[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
                     //Unsafe.Add(ref res, i) = s_simpleCaseFoldingTableBMPane1[ch];
@@ -285,10 +285,16 @@ namespace System.Management.Automation.Unicode
             return c < 0x80;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsNotSurrogate(char c)
+        {
+            return (c < HIGH_SURROGATE_START) || (c > LOW_SURROGATE_END);
+        }
+
         /// <summary>
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int IndexOfOrdinalIgnoreCase(this string source, char ch)
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int IndexOfFoldedIgnoreCase(this string source, char ch)
         {
             var foldedChar = Fold(ch);
 
@@ -305,7 +311,7 @@ namespace System.Management.Automation.Unicode
 
         /// <summary>
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int CompareFolded(this string strA, string strB)
         {
             if (object.ReferenceEquals(strA, strB))
@@ -323,6 +329,12 @@ namespace System.Management.Automation.Unicode
                 return 1;
             }
 
+
+            ref char refA = ref MemoryMarshal.GetReference(strA.AsSpan());
+            ref char refB = ref MemoryMarshal.GetReference(strB.AsSpan());
+            ref char simpleCaseFoldingTableBMPane1 = ref MemoryMarshal.GetReference(s_simpleCaseFoldingTableBMPane1.AsSpan());
+            ref char simpleCaseFoldingTableBMPane2 = ref MemoryMarshal.GetReference(s_simpleCaseFoldingTableBMPane2.AsSpan());
+
             // -1 because char before last can be surrogate in both strings.
             var length = Math.Min(strA.Length, strB.Length) - 1;
             int i = 0;
@@ -330,28 +342,47 @@ namespace System.Management.Automation.Unicode
 
             for (; i < length; i++)
             {
-                var c1 = strA[i];
-                var c2 = strA[i];
-                if ((c1 & HIGH_SURROGATE_START) != 0)
+                var c1 = Unsafe.Add(ref refA, i);
+                var c2 = Unsafe.Add(ref refB, i);
+
+                if (IsNotSurrogate(c1) && IsNotSurrogate(c2))
                 {
-                    if ((c2 & HIGH_SURROGATE_START) != 0)
+                    c = Unsafe.Add(ref simpleCaseFoldingTableBMPane1, c1) - Unsafe.Add(ref simpleCaseFoldingTableBMPane1, c2);
+
+                    if (c == 0)
                     {
-                        // int32 search
+                        continue;
                     }
-                    else
-                    {
-                        return 1;
-                    }
+
+                    return c;
                 }
-                else
+
+                if (IsNotSurrogate(c1) || IsNotSurrogate(c2))
                 {
-                    if ((c2 & HIGH_SURROGATE_START) != 0)
+                    // Only one char is a surrogate
+                    if (IsNotSurrogate(c1))
                     {
                         return -1;
                     }
+
+                    return 1;
                 }
 
-                c = Fold(strA[i]) - Fold(strA[i]);
+                // Both char is surrogates
+                var c12 = Unsafe.Add(ref refA, i + 1);
+                var c22 = Unsafe.Add(ref refB, i + 1);
+
+                // The index is Utf32 - 0x10000 (UNICODE_PLANE01_START)
+                var index1 = ((c1 - HIGH_SURROGATE_START) * 0x400) + (c12 - LOW_SURROGATE_START);
+                // The utf32 is Utf32 - 0x10000 (UNICODE_PLANE01_START)
+                var utf32_1 = Unsafe.Add(ref simpleCaseFoldingTableBMPane2, index1);
+
+                // The index is Utf32 - 0x10000 (UNICODE_PLANE01_START)
+                var index2 = ((c2 - HIGH_SURROGATE_START) * 0x400) + (c22 - LOW_SURROGATE_START);
+                // The utf32 is Utf32 - 0x10000 (UNICODE_PLANE01_START)
+                var utf32_2 = Unsafe.Add(ref simpleCaseFoldingTableBMPane2, index1);
+
+                c = utf32_1 - utf32_2;
 
                 if (c != 0)
                 {
@@ -359,7 +390,11 @@ namespace System.Management.Automation.Unicode
                 }
             }
 
-            c = Fold(strA[i]) - Fold(strA[i]);
+            // Last char shouldn't be a surrogate
+            //c1 = Unsafe.Add(ref refA, i + 1);
+            //c2 = Unsafe.Add(ref refB, i + 1);
+
+            c = Unsafe.Add(ref simpleCaseFoldingTableBMPane1, Unsafe.Add(ref refA, i + 1)) - Unsafe.Add(ref simpleCaseFoldingTableBMPane1, Unsafe.Add(ref refB, i + 1));
 
             if (c != 0)
             {
