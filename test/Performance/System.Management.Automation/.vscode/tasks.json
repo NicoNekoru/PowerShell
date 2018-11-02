@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/SimpleCaseFolding.csproj"
+                "${workspaceFolder}/Perf.TestSCFfolding.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
