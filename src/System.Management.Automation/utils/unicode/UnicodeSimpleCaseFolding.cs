@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -398,6 +399,132 @@ namespace System.Management.Automation.Unicode
             }
 
             return strA.Length - strB.Length;
+        }
+    }
+
+    /// <summary>
+    /// </summary>
+    public class SimpleFoldedStringComparer : IComparer, IEqualityComparer, IComparer<string>, IEqualityComparer<string>
+    {
+        /// <summary>
+        /// IComparer.Compare() implementation.
+        /// </summary>
+        public int Compare(object x, object y)
+        {
+            if (x == y)
+            {
+                return 0;
+            }
+            if (x == null)
+            {
+                return -1;
+            }
+            if (y == null)
+            {
+                return 1;
+            }
+
+            if (x is string sa && y is string sb)
+            {
+                return SimpleCaseFolding.CompareFolded(sa, sb);
+            }
+
+            if (x is IComparable ia)
+            {
+                return ia.CompareTo(y);
+            }
+
+            throw new ArgumentException("SR.Argument_ImplementIComparable");
+        }
+
+        /// <summary>
+        /// IEqualityComparer.Equal() implementation.
+        /// </summary>
+        public new bool Equals(object x, object y)
+        {
+            if (x == y)
+            {
+                return true;
+            }
+            if (x == null || y == null)
+            {
+                return false;
+            }
+
+            if (x is string sa && y is string sb)
+            {
+                return Equals(sa, sb);
+            }
+
+            return x.Equals(y);
+        }
+
+        /// <summary>
+        /// IEqualityComparer.GetHashCode() implementation.
+        /// </summary>
+        public int GetHashCode(object obj)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
+            if (obj is string s)
+            {
+                return GetHashCode(s);
+            }
+
+            return obj.GetHashCode();
+        }
+
+        /// <summary>
+        /// IComparer<string>.GetHashCode() implementation.
+        /// </summary>
+        public int Compare(string x, string y)
+        {
+            if (object.ReferenceEquals(x, y))
+            {
+                return 0;
+            }
+            if (x == null)
+            {
+                return -1;
+            }
+            if (y == null)
+            {
+                return 1;
+            }
+
+            return SimpleCaseFolding.CompareFolded(x, y);
+        }
+
+        /// <summary>
+        /// IEqualityComparer<string>.Equals() implementation.
+        /// </summary>
+        public bool Equals(string x, string y)
+        {
+            if (object.ReferenceEquals(x, y))
+            {
+                return true;
+            }
+            if (x == null || y == null)
+            {
+                return false;
+            }
+
+            return SimpleCaseFolding.CompareFolded(x, y) == 0;
+        }
+
+        /// <summary>
+        /// IEqualityComparer<string>.GetHashCode() implementation.
+        /// </summary>
+        public int GetHashCode(string obj)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+            return obj.GetHashCode();
         }
     }
 }
