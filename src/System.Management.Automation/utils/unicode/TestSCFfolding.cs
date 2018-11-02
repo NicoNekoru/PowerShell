@@ -20,6 +20,7 @@ namespace System.Management.Automation.Unicode
             var summary = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
             Console.WriteLine("CaseFolding1".Fold());
             Console.WriteLine("ЯЯЯЯЯЯЯЯЯЯЯ1".Fold());
+            Console.WriteLine(SimpleCaseFolding.CompareFolded("CaseFolding1", "ЯЯЯЯЯЯЯЯЯЯЯ1"));
         }
     }
 
@@ -30,7 +31,7 @@ namespace System.Management.Automation.Unicode
         //
         // Category: StringFold
         //
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         [BenchmarkCategory("StringCompareFolded")]
         [ArgumentsSource(nameof(Data))]
         public int CoreFXCompareOrdinal(string StrA, string StrB)
