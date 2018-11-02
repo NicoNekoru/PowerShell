@@ -6,14 +6,11 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-
 namespace System.Management.Automation.Unicode
 {
     /// <summary>
     /// </summary>
-    internal static partial class SimpleCaseFolding
+    public static partial class SimpleCaseFolding
     {
         /// <summary>
         /// </summary>
@@ -328,7 +325,6 @@ namespace System.Management.Automation.Unicode
             {
                 return 1;
             }
-
 
             ref char refA = ref MemoryMarshal.GetReference(strA.AsSpan());
             ref char refB = ref MemoryMarshal.GetReference(strB.AsSpan());

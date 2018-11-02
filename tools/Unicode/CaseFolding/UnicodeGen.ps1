@@ -1,4 +1,5 @@
 $CaseFoldingTxt = './CaseFolding.txt'
+
 function Load-CaseFoldingTxt
 {
     Invoke-WebRequest -Uri http://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt -OutFile $CaseFoldingTxt
@@ -13,6 +14,7 @@ function ConvertFromUtf32
     $address1 = $utf32 % 0x400 + 0xdc00
     [System.String]::Format('0x{0:X4}{1:X4}', $address0, $address1)
 }
+
 function Start-Gen
 {
     $CaseFoldingTxtHeader = Get-Content -LiteralPath $CaseFoldingTxt -TotalCount 6 | ForEach-Object { "// $_" }

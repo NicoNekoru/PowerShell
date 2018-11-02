@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-// The file automatically generated at 201810311527
+// The file automatically generated at 201811022105
 // Source file is loaded from file http://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt
 
 // # CaseFolding-11.0.0.txt // # Date: 2018-01-31, 08:20:09 GMT // # © 2018 Unicode®, Inc. // # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries. // # For terms of use, see http://www.unicode.org/terms_of_use.html // #
@@ -13,12 +13,12 @@ namespace System.Management.Automation.Unicode
     /// <summary>
     /// Simple case folding methods.
     /// </summary>
-    internal static partial class SimpleCaseFolding
+    public static partial class SimpleCaseFolding
     {
         /// <summary>
         /// Lookup a char in the 's_simpleCaseFoldingTableBMPane1' table. Get a index. Use the index to lookup target char in 's_simpleCaseFoldingTableInOut'
         /// </summary>
-        public static readonly char[] s_simpleCaseFoldingTableBMPane1 = new char[]
+        private static readonly char[] s_simpleCaseFoldingTableBMPane1 = new char[]
         {
             (char)0,
             (char)1,
