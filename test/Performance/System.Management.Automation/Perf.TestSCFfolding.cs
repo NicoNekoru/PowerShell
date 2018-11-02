@@ -18,7 +18,7 @@ namespace System.Management.Automation.Unicode.Tests
 
             // Run: dotnet run -c release --AllCategories=StringFold
             // Run: dotnet run -c release --AllCategories=StringCompareFolded
-            //var summary = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+            var summary = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
             Console.WriteLine("CaseFolding1".Fold());
             Console.WriteLine("ЯЯЯЯЯЯЯЯЯЯЯ1".Fold());
             Console.WriteLine(SimpleCaseFolding.CompareFolded("CaseFolding1", "ЯЯЯЯЯЯЯЯЯЯЯ1"));
