@@ -11,7 +11,7 @@ namespace System.Management.Automation.Unicode
 {
     /// <summary>
     /// </summary>
-    public static partial class SimpleCaseFolding
+    internal static partial class SimpleCaseFolding
     {
         /// <summary>
         /// </summary>
