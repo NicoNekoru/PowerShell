@@ -14,6 +14,7 @@ namespace System.Management.Automation.Unicode
     internal static partial class SimpleCaseFolding
     {
         /// <summary>
+        /// Simple case folding of the unicode point (Utf32).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static char Fold(char ch)
@@ -23,6 +24,7 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
+        ///  Simple case folding of the string.
         /// </summary>
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Fold(this string source)
@@ -34,6 +36,7 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
+        ///  Simple case folding of the string.
         /// </summary>
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string FoldBase(this string source)
@@ -54,6 +57,7 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
+        ///  Simple case folding of the Span<char>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Fold(this Span<char> source)
@@ -62,6 +66,7 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
+        ///  Simple case folding of the ReadOnlySpan<char>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<char> Fold(this ReadOnlySpan<char> source)
@@ -137,6 +142,7 @@ namespace System.Management.Automation.Unicode
         }
 */
 
+        // For perfotmance test only.
         private static void SpanFoldBase(Span<char> result, ReadOnlySpan<char> source)
         {
             ref char res = ref MemoryMarshal.GetReference(result);
@@ -194,6 +200,8 @@ namespace System.Management.Automation.Unicode
                         {
                             // Broken unicode - throw?
                             Unsafe.Add(ref res, i) = ch;
+                            i++;
+                            Unsafe.Add(ref res, i) = simpleCaseFoldingTableBMPane1[ch];
                         }
                     }
                     else
@@ -255,6 +263,8 @@ namespace System.Management.Automation.Unicode
                         if ((ch2 >= LOW_SURROGATE_START) && (ch2 <= LOW_SURROGATE_END))
                         {
                             // The index is Utf32 - 0x10000 (UNICODE_PLANE01_START)
+                            // We subtract 0x10000 because we packed Plane01 (from 65536 to 131071)
+                            // to an array with size uint (index from 0 to 65535).
                             var index = ((ch - HIGH_SURROGATE_START) * 0x400) + (ch2 - LOW_SURROGATE_START);
                             // The utf32 is Utf32 - 0x10000 (UNICODE_PLANE01_START)
                             var utf32 = Unsafe.Add(ref simpleCaseFoldingTableBMPane2, index);
@@ -265,12 +275,18 @@ namespace System.Management.Automation.Unicode
                         else
                         {
                             // Broken unicode - throw?
+                            // We expect a low surrogate on (i + 1) position but get a full char
+                            // so we copy a high surrogate and convert the full char.
                             Unsafe.Add(ref res, i) = ch;
+                            i++;
+                            Unsafe.Add(ref res, i) = Unsafe.Add(ref simpleCaseFoldingTableBMPane1, ch);
                         }
                     }
                     else
                     {
                         // Broken unicode - throw?
+                        // We catch a surrogate on last position but we had to process it on previous step (i-1)
+                        // so we copy the surrogate.
                         Unsafe.Add(ref res, i) = ch;
                     }
                 }
@@ -290,9 +306,12 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
+        /// Search the char position in the string with simple case folding.
         /// </summary>
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int IndexOfFoldedIgnoreCase(this string source, char ch)
+        /// <return>
+        /// Return an index the char in the string or -1 if not found.
+        /// </return>
+        public static int IndexOfFolded(this string source, char ch)
         {
             var foldedChar = Fold(ch);
 
@@ -308,8 +327,11 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
+        /// Compare strings with simple case folding.
         /// </summary>
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <return>
+        /// Return -1 if strA < strB, 0 if if strA == strB, 1 if strA < strB.
+        /// </return>
         public static int CompareFolded(this string strA, string strB)
         {
             if (object.ReferenceEquals(strA, strB))
@@ -359,10 +381,10 @@ namespace System.Management.Automation.Unicode
                     // Only one char is a surrogate
                     if (IsNotSurrogate(c1))
                     {
-                        return -1;
+                        return 1;
                     }
 
-                    return 1;
+                    return -1;
                 }
 
                 // Both char is surrogates
@@ -391,7 +413,7 @@ namespace System.Management.Automation.Unicode
             //c1 = Unsafe.Add(ref refA, i + 1);
             //c2 = Unsafe.Add(ref refB, i + 1);
 
-            c = Unsafe.Add(ref simpleCaseFoldingTableBMPane1, Unsafe.Add(ref refA, i + 1)) - Unsafe.Add(ref simpleCaseFoldingTableBMPane1, Unsafe.Add(ref refB, i + 1));
+            c = Unsafe.Add(ref simpleCaseFoldingTableBMPane1, Unsafe.Add(ref refA, i)) - Unsafe.Add(ref simpleCaseFoldingTableBMPane1, Unsafe.Add(ref refB, i));
 
             if (c != 0)
             {
@@ -403,9 +425,12 @@ namespace System.Management.Automation.Unicode
     }
 
     /// <summary>
+    /// String comparer with simple case folding.
     /// </summary>
     public class SimpleFoldedStringComparer : IComparer, IEqualityComparer, IComparer<string>, IEqualityComparer<string>
     {
+        // Based on CoreFX StringComparer code
+
         /// <summary>
         /// IComparer.Compare() implementation.
         /// </summary>
