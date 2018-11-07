@@ -3938,7 +3938,7 @@ namespace System.Management.Automation
             {
                 if (_members == null)
                 {
-                    System.Threading.Interlocked.CompareExchange(ref _members, new OrderedDictionary(StringComparer.OrdinalIgnoreCase), null);
+                    System.Threading.Interlocked.CompareExchange(ref _members, new OrderedDictionary(new System.Management.Automation.Unicode.SimpleFoldedStringComparer()), null);
                 }
 
                 return _members;
