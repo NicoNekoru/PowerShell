@@ -432,6 +432,13 @@ namespace System.Management.Automation.Unicode
         // Based on CoreFX StringComparer code
 
         /// <summary>
+        /// Constructor implementation.
+        /// </summary>
+        public SimpleFoldedStringComparer()
+        {
+        }
+
+        /// <summary>
         /// IComparer.Compare() implementation.
         /// </summary>
         public int Compare(object x, object y)
