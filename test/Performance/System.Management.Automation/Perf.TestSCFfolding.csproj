@@ -6,6 +6,7 @@
     <LangVersion>Latest</LangVersion>
 
     <OutputType>Exe</OutputType>
+    <AssemblyName>powershell-perf-tests</AssemblyName>
 
     <Description>Test</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
