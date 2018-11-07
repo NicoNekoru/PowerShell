@@ -6,9 +6,6 @@ using BenchmarkDotNet.Running;
 
 using System.Collections.Generic;
 using System.Management.Automation.Unicode;
-using System.Runtime.CompilerServices;
-
-[assembly: IgnoresAccessChecksTo("System.Management.Automation")]
 
 namespace System.Management.Automation.Unicode.Tests
 {
@@ -57,19 +54,5 @@ namespace System.Management.Automation.Unicode.Tests
             yield return new object[] { "CaseFolding1", "CaseFolding" };
             yield return new object[] { "ЯЯЯЯЯЯЯЯЯЯЯ1", "ЯЯЯЯЯЯЯЯЯЯЯ" };
         }
-    }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    public class IgnoresAccessChecksToAttribute : Attribute
-    {
-        public IgnoresAccessChecksToAttribute(string assemblyName)
-        {
-            AssemblyName = assemblyName;
-        }
-
-        public string AssemblyName { get; }
     }
 }
