@@ -36,7 +36,7 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
-        ///  Simple case folding of the string.
+        /// For performance test only.
         /// </summary>
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string FoldBase(this string source)
@@ -71,11 +71,11 @@ namespace System.Management.Automation.Unicode
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<char> Fold(this ReadOnlySpan<char> source)
         {
-            Span<char> result = new char[source.Length];
+            Span<char> destination = new char[source.Length];
 
-            SpanFold(result, source);
+            SpanFold(destination, source);
 
-            return result;
+            return destination;
         }
 
         internal const char HIGH_SURROGATE_START = '\ud800';
@@ -85,7 +85,7 @@ namespace System.Management.Automation.Unicode
         internal const int  HIGH_SURROGATE_RANGE = 0x3FF;
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-/*        private static void SpanFoldBase(Span<char> result, ReadOnlySpan<char> source)
+/*        private static void SpanFoldBase(Span<char> destination, ReadOnlySpan<char> source)
         {
             var length = source.Length;
 
@@ -97,11 +97,11 @@ namespace System.Management.Automation.Unicode
                 {
                     if((uint)(ch - 'A') <= (uint)('Z' - 'A'))
                     {
-                        result[i] = (char)(ch | 0x20);
+                        destination[i] = (char)(ch | 0x20);
                     }
                     else
                     {
-                         result[i] = ch;
+                         destination[i] = ch;
                     }
 
                     continue;
@@ -109,7 +109,7 @@ namespace System.Management.Automation.Unicode
 
                 if (ch < HIGH_SURROGATE_START || ch > LOW_SURROGATE_END)
                 {
-                    result[i] = s_simpleCaseFoldingTableBMPane1[ch];
+                    destination[i] = s_simpleCaseFoldingTableBMPane1[ch];
                 }
                 else
                 {
@@ -122,30 +122,30 @@ namespace System.Management.Automation.Unicode
                             var index = ((ch - HIGH_SURROGATE_START) * 0x400) + (ch2 - LOW_SURROGATE_START);
                             // The utf32 is Utf32 - 0x10000 (UNICODE_PLANE01_START)
                             var utf32 = s_simpleCaseFoldingTableBMPane2[index];
-                            result[i] = (char)((utf32 / 0x400) + (int)HIGH_SURROGATE_START);
+                            destination[i] = (char)((utf32 / 0x400) + (int)HIGH_SURROGATE_START);
                             i++;
-                            result[i] = (char)((utf32 % 0x400) + (int)LOW_SURROGATE_START);
+                            destination[i] = (char)((utf32 % 0x400) + (int)LOW_SURROGATE_START);
                         }
                         else
                         {
                             // Broken unicode - throw?
-                            result[i] = ch;
+                            destination[i] = ch;
                         }
                     }
                     else
                     {
                         // Broken unicode - throw?
-                        result[i] = ch;
+                        destination[i] = ch;
                     }
                 }
             }
         }
 */
 
-        // For perfotmance test only.
-        private static void SpanFoldBase(Span<char> result, ReadOnlySpan<char> source)
+        // For performance test only.
+        private static void SpanFoldBase(Span<char> destination, ReadOnlySpan<char> source)
         {
-            ref char res = ref MemoryMarshal.GetReference(result);
+            ref char res = ref MemoryMarshal.GetReference(destination);
             ref char src = ref MemoryMarshal.GetReference(source);
             var simpleCaseFoldingTableBMPane1 = s_simpleCaseFoldingTableBMPane1.AsSpan();
             var simpleCaseFoldingTableBMPane2 = s_simpleCaseFoldingTableBMPane2.AsSpan();
@@ -163,12 +163,12 @@ namespace System.Management.Automation.Unicode
                 {
                     if((uint)(ch - 'A') <= (uint)('Z' - 'A'))
                     {
-                        //result[i] = (char)(ch | 0x20);
+                        //destination[i] = (char)(ch | 0x20);
                         Unsafe.Add(ref res, i) = (char)(ch | 0x20);
                     }
                     else
                     {
-                         //result[i] = ch;
+                         //destination[i] = ch;
                          Unsafe.Add(ref res, i) = ch;
                     }
 
@@ -177,7 +177,7 @@ namespace System.Management.Automation.Unicode
 
                 if (ch < HIGH_SURROGATE_START || ch > LOW_SURROGATE_END)
                 {
-                    //result[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
+                    //destination[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
                     //Unsafe.Add(ref res, i) = s_simpleCaseFoldingTableBMPane1[ch];
                     Unsafe.Add(ref res, i) = simpleCaseFoldingTableBMPane1[ch];
                 }
@@ -213,10 +213,10 @@ namespace System.Management.Automation.Unicode
             }
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SpanFold(Span<char> result, ReadOnlySpan<char> source)
+        private static void SpanFold(Span<char> destination, ReadOnlySpan<char> source)
         {
-            ref char res = ref MemoryMarshal.GetReference(result);
+            Diagnostics.Assert(destination.Length >= source.Length, "Destination span length must be equal or greater then source span length.");
+            ref char res = ref MemoryMarshal.GetReference(destination);
             ref char src = ref MemoryMarshal.GetReference(source);
             //var simpleCaseFoldingTableBMPane1 = s_simpleCaseFoldingTableBMPane1.AsSpan();
             //var simpleCaseFoldingTableBMPane2 = s_simpleCaseFoldingTableBMPane2.AsSpan();
@@ -236,12 +236,12 @@ namespace System.Management.Automation.Unicode
                 {
                     if((uint)(ch - 'A') <= (uint)('Z' - 'A'))
                     {
-                        //result[i] = (char)(ch | 0x20);
+                        //destination[i] = (char)(ch | 0x20);
                         Unsafe.Add(ref res, i) = (char)(ch | 0x20);
                     }
                     else
                     {
-                         //result[i] = ch;
+                         //destination[i] = ch;
                          Unsafe.Add(ref res, i) = ch;
                     }
 
@@ -250,7 +250,7 @@ namespace System.Management.Automation.Unicode
 
                 if (IsNotSurrogate(ch))
                 {
-                    //result[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
+                    //destination[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
                     //Unsafe.Add(ref res, i) = s_simpleCaseFoldingTableBMPane1[ch];
                     //Unsafe.Add(ref res, i) = simpleCaseFoldingTableBMPane1[ch];
                     Unsafe.Add(ref res, i) = Unsafe.Add(ref simpleCaseFoldingTableBMPane1, ch);
