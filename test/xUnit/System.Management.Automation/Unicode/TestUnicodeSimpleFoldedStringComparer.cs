@@ -22,6 +22,14 @@ namespace System.Management.Automation.Unicode.Tests
         }
 
         [Fact]
+        public static void TestHash_ReturnsSameHashCodes()
+        {
+            SimpleFoldedStringComparer sc = new SimpleFoldedStringComparer();
+            Assert.Equal(sc.GetHashCode("AAA"), sc.GetHashCode("aaa"));
+            Assert.Equal(sc.GetHashCode("BaC"), sc.GetHashCode("bAc"));
+        }
+
+        [Fact]
         public static void VerifyComparer()
         {
             SimpleFoldedStringComparer sc = new SimpleFoldedStringComparer();
@@ -77,18 +85,11 @@ namespace System.Management.Automation.Unicode.Tests
         [MemberData(nameof(UpperLowerCasing_TestData))]
         public static void CreateWithCulturesTest(string lowerForm, string upperForm, string cultureName)
         {
-            CultureInfo ci = CultureInfo.GetCultureInfo(cultureName);
-            StringComparer sc = StringComparer.Create(ci, false);
+            SimpleFoldedStringComparer sc = new SimpleFoldedStringComparer();
             Assert.False(sc.Equals(lowerForm, upperForm), "Not expected to have the lowercase equals the uppercase with ignore case is false");
             Assert.False(sc.Equals((object) lowerForm, (object) upperForm), "Not expected to have the lowercase object equals the uppercase with ignore case is false");
             Assert.NotEqual(sc.GetHashCode(lowerForm), sc.GetHashCode(upperForm));
             Assert.NotEqual(sc.GetHashCode((object) lowerForm), sc.GetHashCode((object) upperForm));
-
-            sc = StringComparer.Create(ci, true);
-            Assert.True(sc.Equals(lowerForm, upperForm), "It is expected to have the lowercase equals the uppercase with ignore case is true");
-            Assert.True(sc.Equals((object) lowerForm, (object) upperForm), "It is expected to have the lowercase object equals the uppercase with ignore case is true");
-            Assert.Equal(sc.GetHashCode(lowerForm), sc.GetHashCode(upperForm));
-            Assert.Equal(sc.GetHashCode((object) lowerForm), sc.GetHashCode((object) upperForm));
         }
 
         [Fact]
