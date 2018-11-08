@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Text;
 using Xunit;
 
-namespace System.Tests
+namespace System.Management.Automation.Unicode.Tests
 {
     // The tests come from CoreFX tests: src\System.Runtime\tests\System\ 
 
@@ -157,7 +157,7 @@ namespace System.Tests
         [InlineData('a', (int)'a', false)]
         [InlineData('a', "a", false)]
         [InlineData('a', null, false)]
-        public static void Equals(char c, object obj, bool expected)
+        public static void Equals1(char c, object obj, bool expected)
         {
             if (obj is char)
             {
@@ -828,7 +828,7 @@ namespace System.Tests
         [Theory]
         [InlineData('a', "a")]
         [InlineData('\uabcd', "\uabcd")]
-        public static void ToString(char c, string expected)
+        public static void ToString1(char c, string expected)
         {
             Assert.Equal(expected, c.ToString());
             Assert.Equal(expected, char.ToString(c));

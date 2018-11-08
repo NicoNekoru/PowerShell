@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 
-namespace System.Globalization.Tests
+namespace System.Management.Automation.Unicode.Tests
 {
+    // The tests come from CoreFX tests: src\System.Globalization\tests\CharUnicodeInfo\
+
     public static class CharUnicodeInfoTestData
     {
         private static readonly Lazy<List<CharUnicodeInfoTestCase>> s_testCases = new Lazy<List<CharUnicodeInfoTestCase>>(() =>
@@ -16,7 +19,7 @@ namespace System.Globalization.Tests
             string fileName =
                 CharUnicodeInfo.GetUnicodeCategory('\u10D0') == UnicodeCategory.LowercaseLetter  ? "UnicodeData.11.0.txt" :
                 CharUnicodeInfo.GetUnicodeCategory('\u037f') == UnicodeCategory.OtherNotAssigned ? "UnicodeData6.3.txt"   : "UnicodeData.8.0.txt";
-            Stream stream = typeof(CharUnicodeInfoGetUnicodeCategoryTests).GetTypeInfo().Assembly.GetManifestResourceStream(fileName);
+            Stream stream = typeof(CharTests).GetTypeInfo().Assembly.GetManifestResourceStream(fileName);
             using (StreamReader reader = new StreamReader(stream))
             {
                 while (!reader.EndOfStream)
