@@ -107,9 +107,11 @@ namespace System.Management.Automation.Unicode.Tests
         public static void IndexOf_CyrillicE_Char()
         {
             string s = "Foo\u0400Bar";
+            ReadOnlySpan<char> span = s.AsSpan();
             char value = '\u0400';
 
             Assert.Equal(3, s.IndexOfFolded(value));
+            Assert.Equal(3, span.IndexOfFolded(value));
         }
     }
 }
