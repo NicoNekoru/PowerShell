@@ -22,11 +22,13 @@ namespace System.Management.Automation.Unicode.Tests
         }
 
         [Fact]
-        public static void TestHash_ReturnsSameHashCodes()
+        public static void TestHash_ReturnsHashCodes()
         {
             SimpleFoldedStringComparer sc = new SimpleFoldedStringComparer();
             Assert.Equal(sc.GetHashCode("AAA"), sc.GetHashCode("aaa"));
             Assert.Equal(sc.GetHashCode("BaC"), sc.GetHashCode("bAc"));
+            Assert.NotEqual(sc.GetHashCode("AAA"), sc.GetHashCode("AAB"));
+            Assert.NotEqual(sc.GetHashCode("AAA"), sc.GetHashCode("AAb"));
         }
 
         [Fact]
