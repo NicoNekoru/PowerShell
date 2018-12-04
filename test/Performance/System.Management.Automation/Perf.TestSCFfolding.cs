@@ -39,7 +39,7 @@ namespace System.Management.Automation.Unicode.Tests
         //[ArgumentsSource(nameof(Data))]
         public (string, string) TestStringFoldBase(string StrA, string StrB)
         {
-            return (StrA.FoldBase(), StrB.FoldBase());
+            return (StrA.SimpleCaseFoldBase(), StrB.SimpleCaseFoldBase());
         }
 
         [Benchmark]
