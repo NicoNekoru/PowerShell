@@ -20,7 +20,7 @@ namespace System.Management.Automation.Unicode.Tests
             var summary = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
             Console.WriteLine("CaseFolding1".SimpleCaseFold());
             Console.WriteLine("ЯЯЯЯЯЯЯЯЯЯЯ1".SimpleCaseFold());
-            Console.WriteLine(SimpleCaseFolding.CompareFolded("CaseFolding1", "ЯЯЯЯЯЯЯЯЯЯЯ1"));
+            Console.WriteLine(SimpleCaseFolding.CompareUsingSimpleCaseFolding("CaseFolding1", "ЯЯЯЯЯЯЯЯЯЯЯ1"));
         }
     }
 
