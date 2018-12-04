@@ -14,7 +14,7 @@ namespace System.Management.Automation.Unicode
 {
     /// <summary>
     /// </summary>
-    internal static partial class CaseFolding
+    internal static partial class SimpleCaseFolding
     {
         /// <summary>
         /// Simple case folding of the char (Utf16).
