@@ -477,7 +477,7 @@ namespace System.Management.Automation.Unicode
 
             if (x is string sa && y is string sb)
             {
-                return CaseFolding.CompareUsingSimpleCaseFolding(sa, sb);
+                return SimpleCaseFolding.CompareUsingSimpleCaseFolding(sa, sb);
             }
 
             if (x is IComparable ia)
@@ -543,7 +543,7 @@ namespace System.Management.Automation.Unicode
                 stackalloc char[source.Length] :
                 (borrowedArr = ArrayPool<char>.Shared.Rent(source.Length));
 
-            CaseFolding.SpanSimpleCaseFold(span, source);
+            SimpleCaseFolding.SpanSimpleCaseFold(span, source);
 
             int hash = HashByteArray(MemoryMarshal.AsBytes(span));
 
@@ -613,7 +613,7 @@ namespace System.Management.Automation.Unicode
                 return 1;
             }
 
-            return CaseFolding.CompareUsingSimpleCaseFolding(x, y);
+            return SimpleCaseFolding.CompareUsingSimpleCaseFolding(x, y);
         }
 
         /// <summary>
@@ -630,7 +630,7 @@ namespace System.Management.Automation.Unicode
                 return false;
             }
 
-            return CaseFolding.CompareUsingSimpleCaseFolding(x, y) == 0;
+            return SimpleCaseFolding.CompareUsingSimpleCaseFolding(x, y) == 0;
         }
 
         /// <summary>
