@@ -46,7 +46,7 @@ namespace System.Management.Automation.Unicode.Tests
         [ArgumentsSource(nameof(Data))]
         public (string, string) StringFold(string StrA, string StrB)
         {
-            return (StrA.Fold(), StrB.Fold());
+            return (StrA.SimpleCaseFold(), StrB.SimpleCaseFold());
         }
 
         public IEnumerable<object[]> Data()

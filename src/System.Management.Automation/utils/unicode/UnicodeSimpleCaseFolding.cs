@@ -42,7 +42,7 @@ namespace System.Management.Automation.Unicode
         /// For performance test only.
         /// </summary>
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string FoldBase(this string source)
+        public static string SimpleCaseFoldBase(this string source)
         {
             /*
             var tmp = new char[source.Length];
