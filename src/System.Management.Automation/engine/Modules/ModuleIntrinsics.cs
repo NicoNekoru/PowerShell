@@ -1459,7 +1459,7 @@ namespace System.Management.Automation
         /// Removes all functions not belonging to the parent module.
         /// </summary>
         /// <param name="module">Parent module</param>
-        static internal void RemoveNestedModuleFunctions(PSModuleInfo module)
+        internal static void RemoveNestedModuleFunctions(PSModuleInfo module)
         {
             var input = module.SessionState?.Internal?.ExportedFunctions;
             if ((input == null) || (input.Count == 0))
@@ -1714,7 +1714,7 @@ namespace System.Management.Automation
             };
             return aliasCopy;
         }
-    } // ModuleIntrinsics
+    }
 
     /// <summary>
     /// Enumeration of reasons for a failure to match a module by constraints.
@@ -1769,4 +1769,4 @@ namespace System.Management.Automation
         /// </summary>
         void OnRemove(PSModuleInfo psModuleInfo);
     }
-} // System.Management.Automation
+}

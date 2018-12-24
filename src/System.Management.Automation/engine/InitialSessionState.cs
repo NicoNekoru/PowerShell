@@ -399,7 +399,6 @@ namespace System.Management.Automation.Runspaces
         public SessionStateAssemblyEntry(string name)
             : base(name)
         {
-            ;
         }
 
         /// <summary>
@@ -2735,15 +2734,14 @@ namespace System.Management.Automation.Runspaces
         {
             // Use the user name passed to initial session state if available, or
             // otherwise use the current user name.
-            var userName = (!string.IsNullOrEmpty(this.UserDriveUserName)) ?
-                this.UserDriveUserName :
+            var userName = !string.IsNullOrEmpty(this.UserDriveUserName)
+                ? this.UserDriveUserName
                 // domain\user on Windows, just user on Unix
 #if UNIX
-                Platform.Unix.UserName
+                : Platform.Unix.UserName;
 #else
-                System.Security.Principal.WindowsIdentity.GetCurrent().Name
+                : System.Security.Principal.WindowsIdentity.GetCurrent().Name;
 #endif
-                ;
 
             // Ensure that user name contains no invalid path characters.
             // MSDN indicates that logon names cannot contain any of these invalid characters,
@@ -3926,7 +3924,7 @@ namespace System.Management.Automation.Runspaces
 
             // If this is an in-memory assembly, don't added it to the list of AssemblyEntries
             // since it can't be loaded by path or name
-            if (! string.IsNullOrEmpty(assembly.Location))
+            if (!string.IsNullOrEmpty(assembly.Location))
             {
                 SessionStateAssemblyEntry assemblyEntry =
                     new SessionStateAssemblyEntry(assembly.FullName, assemblyPath);
@@ -4186,36 +4184,18 @@ param(
 )
 
 begin {
-
-    try {
-        $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('New-Item', [System.Management.Automation.CommandTypes]::Cmdlet)
-        $scriptCmd = {& $wrappedCmd -Type Directory @PSBoundParameters }
-        $steppablePipeline = $scriptCmd.GetSteppablePipeline()
-        $steppablePipeline.Begin($PSCmdlet)
-    } catch {
-        throw
-    }
-
+    $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('New-Item', [System.Management.Automation.CommandTypes]::Cmdlet)
+    $scriptCmd = {& $wrappedCmd -Type Directory @PSBoundParameters }
+    $steppablePipeline = $scriptCmd.GetSteppablePipeline()
+    $steppablePipeline.Begin($PSCmdlet)
 }
 
 process {
-
-    try {
-        $steppablePipeline.Process($_)
-    } catch {
-        throw
-    }
-
+    $steppablePipeline.Process($_)
 }
 
 end {
-
-    try {
-        $steppablePipeline.End()
-    } catch {
-        throw
-    }
-
+    $steppablePipeline.End()
 }
 
 ";
@@ -4234,35 +4214,20 @@ param(
     [psobject]
     ${InputObject})
 
-begin
-{
-    try {
-        $PSBoundParameters['Stream'] = $true
-        $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Out-String',[System.Management.Automation.CommandTypes]::Cmdlet)
-        $scriptCmd = {& $wrappedCmd @PSBoundParameters }
-        $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
-        $steppablePipeline.Begin($PSCmdlet)
-    } catch {
-        throw
-    }
+begin {
+    $PSBoundParameters['Stream'] = $true
+    $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Out-String',[System.Management.Automation.CommandTypes]::Cmdlet)
+    $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+    $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
+    $steppablePipeline.Begin($PSCmdlet)
 }
 
-process
-{
-    try {
-        $steppablePipeline.Process($_)
-    } catch {
-        throw
-    }
+process {
+    $steppablePipeline.Process($_)
 }
 
-end
-{
-    try {
-        $steppablePipeline.End()
-    } catch {
-        throw
-    }
+end {
+    $steppablePipeline.End()
 }
 <#
 .ForwardHelpTargetName Out-String

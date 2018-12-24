@@ -1,33 +1,35 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Security;
-using System.Runtime.InteropServices;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.ComponentModel;
 using System.Management.Automation.Configuration;
 using System.Management.Automation.Internal;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
 using System.Management.Automation.Security;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security;
+#if !UNIX
+using System.Security.Principal;
+#endif
+using System.Text;
+using System.Threading;
 using Microsoft.PowerShell.Commands;
 using Microsoft.Win32;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Text;
+using Microsoft.Win32.SafeHandles;
 
 using TypeTable = System.Management.Automation.Runspaces.TypeTable;
-
-using System.Diagnostics;
-using Microsoft.Win32.SafeHandles;
 
 namespace System.Management.Automation
 {
@@ -488,10 +490,10 @@ namespace System.Management.Automation
         /// </summary>
         internal static string ModuleDirectory = Path.Combine(ProductNameForDirectory, "Modules");
 
-        internal readonly static ConfigScope[] SystemWideOnlyConfig = new[] { ConfigScope.AllUsers };
-        internal readonly static ConfigScope[] CurrentUserOnlyConfig = new[] { ConfigScope.CurrentUser };
-        internal readonly static ConfigScope[] SystemWideThenCurrentUserConfig = new[] { ConfigScope.AllUsers, ConfigScope.CurrentUser };
-        internal readonly static ConfigScope[] CurrentUserThenSystemWideConfig = new[] { ConfigScope.CurrentUser, ConfigScope.AllUsers };
+        internal static readonly ConfigScope[] SystemWideOnlyConfig = new[] { ConfigScope.AllUsers };
+        internal static readonly ConfigScope[] CurrentUserOnlyConfig = new[] { ConfigScope.CurrentUser };
+        internal static readonly ConfigScope[] SystemWideThenCurrentUserConfig = new[] { ConfigScope.AllUsers, ConfigScope.CurrentUser };
+        internal static readonly ConfigScope[] CurrentUserThenSystemWideConfig = new[] { ConfigScope.CurrentUser, ConfigScope.AllUsers };
 
         internal static T GetPolicySetting<T>(ConfigScope[] preferenceOrder) where T : PolicyBase, new()
         {
@@ -506,7 +508,7 @@ namespace System.Management.Automation
             return policy;
         }
 
-        private readonly static ConcurrentDictionary<ConfigScope, PowerShellPolicies> s_cachedPoliciesFromConfigFile =
+        private static readonly ConcurrentDictionary<ConfigScope, PowerShellPolicies> s_cachedPoliciesFromConfigFile =
             new ConcurrentDictionary<ConfigScope, PowerShellPolicies>();
 
         /// <summary>
@@ -562,7 +564,7 @@ namespace System.Management.Automation
             {nameof(UpdatableHelp), @"Software\Policies\Microsoft\PowerShellCore\UpdatableHelp"},
             {nameof(ConsoleSessionConfiguration), @"Software\Policies\Microsoft\PowerShellCore\ConsoleSessionConfiguration"}
         };
-        private readonly static ConcurrentDictionary<Tuple<ConfigScope, string>, PolicyBase> s_cachedPoliciesFromRegistry =
+        private static readonly ConcurrentDictionary<Tuple<ConfigScope, string>, PolicyBase> s_cachedPoliciesFromRegistry =
             new ConcurrentDictionary<Tuple<ConfigScope, string>, PolicyBase>();
 
         /// <summary>
@@ -870,6 +872,40 @@ namespace System.Management.Automation
             return result;
         }
 
+#if !UNIX
+        private static bool TryGetWindowsCurrentIdentity(out WindowsIdentity currentIdentity)
+        {
+            try
+            {
+                currentIdentity = WindowsIdentity.GetCurrent();
+            }
+            catch (SecurityException)
+            {
+                currentIdentity = null;
+            }
+
+            return (currentIdentity != null);
+        }
+
+        /// <summary>
+        /// Gets the current impersonating Windows identity, if any
+        /// </summary>
+        /// <param name="impersonatedIdentity">Current impersonated Windows identity or null</param>
+        /// <returns>True if current identity is impersonated</returns>
+        internal static bool TryGetWindowsImpersonatedIdentity(out WindowsIdentity impersonatedIdentity)
+        {
+            WindowsIdentity currentIdentity;
+            if (TryGetWindowsCurrentIdentity(out currentIdentity) && (currentIdentity.ImpersonationLevel == TokenImpersonationLevel.Impersonation))
+            {
+                impersonatedIdentity = currentIdentity;
+                return true;
+            }
+
+            impersonatedIdentity = null;
+            return false;
+        }
+#endif
+
         internal static bool IsAdministrator()
         {
             // Porting note: only Windows supports the SecurityPrincipal API of .NET. Due to
@@ -881,10 +917,13 @@ namespace System.Management.Automation
 #if UNIX
             return true;
 #else
-            System.Security.Principal.WindowsIdentity currentIdentity = System.Security.Principal.WindowsIdentity.GetCurrent();
-            System.Security.Principal.WindowsPrincipal principal = new System.Security.Principal.WindowsPrincipal(currentIdentity);
-
-            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            WindowsIdentity currentIdentity;
+            if (TryGetWindowsCurrentIdentity(out currentIdentity))
+            {
+                var principal = new WindowsPrincipal(currentIdentity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+            return false;
 #endif
         }
 
@@ -1171,7 +1210,7 @@ namespace System.Management.Automation
         internal static readonly UTF8Encoding utf8NoBom =
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-#if !CORECLR // TODO:CORECLR - WindowsIdentity.Impersonate() is not available. Use WindowsIdentity.RunImpersonated to replace it.
+#if !UNIX
         /// <summary>
         /// Queues a CLR worker thread with impersonation of provided Windows identity.
         /// </summary>
@@ -1197,28 +1236,14 @@ namespace System.Management.Automation
             WaitCallback callback = args[1] as WaitCallback;
             object state = args[2];
 
-            WindowsImpersonationContext impersonationContext = null;
-            if ((identityToImpersonate != null) &&
-                (identityToImpersonate.ImpersonationLevel == TokenImpersonationLevel.Impersonation))
+            if (identityToImpersonate != null)
             {
-                impersonationContext = identityToImpersonate.Impersonate();
+                WindowsIdentity.RunImpersonated(
+                    identityToImpersonate.AccessToken,
+                    () => callback(state));
+                return;
             }
-            try
-            {
-                callback(state);
-            }
-            finally
-            {
-                if (impersonationContext != null)
-                {
-                    try
-                    {
-                        impersonationContext.Undo();
-                        impersonationContext.Dispose();
-                    }
-                    catch (System.Security.SecurityException) { }
-                }
-            }
+            callback(state);
         }
 #endif
 
@@ -1531,7 +1556,7 @@ namespace System.Management.Automation
                     WriteVerbose(ps, string.Format(CultureInfo.CurrentCulture, ParserStrings.ImplicitRemotingPipelineBatchingException, ex.Message));
                 }
             }
-            
+
             return false;
         }
 
@@ -1781,6 +1806,7 @@ namespace System.Management.Automation.Internal
         internal static bool StopwatchIsNotHighResolution;
         internal static bool DisableGACLoading;
         internal static bool SetConsoleWidthToZero;
+        internal static bool SetConsoleHeightToZero;
 
         // A location to test PSEdition compatibility functionality for Windows PowerShell modules with
         // since we can't manipulate the System32 directory in a test

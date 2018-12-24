@@ -471,7 +471,6 @@ namespace Microsoft.PowerShell.Commands
                     }
                     catch (IOException)
                     {
-                        ;
                     }
                 }
             }
@@ -1814,4 +1813,4 @@ namespace Microsoft.PowerShell.Commands
             }
         }
     }
-} // Microsoft.PowerShell.Commands
+}

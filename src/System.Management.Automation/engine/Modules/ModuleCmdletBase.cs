@@ -6487,7 +6487,7 @@ namespace Microsoft.PowerShell.Commands
                 // it isn't already there.
                 if (string.IsNullOrEmpty(assembly.Location))
                 {
-                    if (! Context.AssemblyCache.ContainsKey(assembly.FullName))
+                    if (!Context.AssemblyCache.ContainsKey(assembly.FullName))
                     {
                         Context.AssemblyCache.Add(assembly.FullName, assembly);
                     }
@@ -6518,7 +6518,6 @@ namespace Microsoft.PowerShell.Commands
                     catch (PSArgumentException)
                     {
                         //BUGBUG - brucepay - probably want to have a verbose message here...
-                        ;
                     }
 #endif
 
@@ -7486,7 +7485,7 @@ namespace Microsoft.PowerShell.Commands
 
             return foundModule;
         }
-    } // end ModuleCmdletBase
+    }
 
     /// <summary>
     /// Holds the result of a binary module analysis.

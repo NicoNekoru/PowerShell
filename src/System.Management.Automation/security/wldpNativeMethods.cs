@@ -63,7 +63,7 @@ namespace System.Management.Automation.Security
         }
 
         private static object s_systemLockdownPolicyLock = new Object();
-        private static Nullable<SystemEnforcementMode> s_systemLockdownPolicy = null;
+        private static SystemEnforcementMode? s_systemLockdownPolicy = null;
         private static bool s_allowDebugOverridePolicy = false;
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace System.Management.Automation.Security
                             // https://msdn.microsoft.com/library/dd378457.aspx
                             Guid AppDatalocalLowFolderId = new Guid("A520A1A4-1780-4FF6-BD18-167343C5AF16");
                             tempPath = GetKnownFolderPath(AppDatalocalLowFolderId) + @"\Temp";
-                        } // end while loop
+                        }
 
                         // Test policy.
                         result = TestSaferPolicy(testPathScript, testPathModule);
