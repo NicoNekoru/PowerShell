@@ -9,11 +9,13 @@ using System.Globalization;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Text.Unicode;
 using System.Threading;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.PowerShell.Commands
@@ -201,7 +203,7 @@ namespace Microsoft.PowerShell.Commands
                         return obj;
                 }
             }
-            catch (JsonException je)
+            catch (Newtonsoft.Json.JsonException je)
             {
                 var msg = string.Format(CultureInfo.CurrentCulture, WebCmdletStrings.JsonDeserializationFailed, je.Message);
 
@@ -448,6 +450,21 @@ namespace Microsoft.PowerShell.Commands
 
         #region ConvertToJson
 
+            // The implementation is the same as JavaScriptEncoder.Default but can be customized.
+            // Default JavaScriptEncoder always escape HTML and follow codepoints (the comment come from .Net Core):
+            // 1. Forbid codepoints which aren't mapped to characters or which are otherwise always disallowed
+            //    (includes categories Cc, Cs, Co, Cn, Zs [except U+0020 SPACE], Zl, Zp)
+            // 2. '\' (U+005C REVERSE SOLIDUS) must always be escaped in Javascript / ECMAScript / JSON.
+            //    '/' (U+002F SOLIDUS) is not Javascript / ECMAScript / JSON-sensitive so doesn't need to be escaped.
+            // 3. '`' (U+0060 GRAVE ACCENT) is ECMAScript-sensitive (see ECMA-262).
+        private static JavaScriptEncoder s_escapeNonAsciiEncoder = InitEscapeNonAsciiEncoder();
+        private static JavaScriptEncoder InitEscapeNonAsciiEncoder()
+        {
+            var textEncoderSettings = new TextEncoderSettings(UnicodeRanges.BasicLatin);
+
+            return JavaScriptEncoder.Create(textEncoderSettings);
+        }
+
         /// <summary>
         /// Convert an object to JSON string.
         /// </summary>
@@ -457,7 +474,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 // Pre-process the object so that it serializes the same, except that properties whose
                 // values cannot be evaluated are treated as having the value null.
-                object preprocessedObject = ProcessValue(objectToProcess, currentDepth: 0, in context);
+                //object preprocessedObject = ProcessValue(objectToProcess, currentDepth: 0, in context);
                 var jsonSettings = new JsonSerializerSettings
                 {
                     // This TypeNameHandling setting is required to be secure.
@@ -466,22 +483,322 @@ namespace Microsoft.PowerShell.Commands
                     StringEscapeHandling = context.StringEscapeHandling
                 };
 
+                var options = new JsonSerializerOptions()
+                {
+                    WriteIndented = !context.CompressOutput,
+                    MaxDepth = context.MaxDepth,
+                    IgnoreNullValues = false,
+                    Encoder = context.StringEscapeHandling switch
+                    {
+                        StringEscapeHandling.Default => JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                        StringEscapeHandling.EscapeHtml => JavaScriptEncoder.Default,
+                        StringEscapeHandling.EscapeNonAscii => s_escapeNonAsciiEncoder,
+                        _ => JavaScriptEncoder.Default
+                    }
+                };
+
                 if (context.EnumsAsStrings)
                 {
-                    jsonSettings.Converters.Add(new StringEnumConverter());
+                    options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
                 }
 
-                if (!context.CompressOutput)
-                {
-                    jsonSettings.Formatting = Formatting.Indented;
-                }
+                options.Converters.Add(new JsonConverterPSObject());
+                options.Converters.Add(new JsonConverterNullString());
+                options.Converters.Add(new JsonConverterDBNull());
 
-                return JsonConvert.SerializeObject(preprocessedObject, jsonSettings);
+                //if (preprocessedObject == null)
+                //{
+                //    return System.Text.Json.JsonSerializer.Serialize(preprocessedObject, null, options);
+                //}
+
+                return System.Text.Json.JsonSerializer.Serialize(objectToProcess, objectToProcess?.GetType(), options);
+                //return System.Text.Json.JsonSerializer.Serialize(preprocessedObject, preprocessedObject.GetType(), options);
+
             }
             catch (OperationCanceledException)
             {
                 return null;
             }
+        }
+
+        private sealed class JsonConverterDBNull : System.Text.Json.Serialization.JsonConverter<DBNull>
+        {
+            public override DBNull Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Write(Utf8JsonWriter writer, DBNull _, JsonSerializerOptions options)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+        }
+
+        private sealed class JsonConverterNullString : System.Text.Json.Serialization.JsonConverter<NullString>
+        {
+            public override NullString Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Write(Utf8JsonWriter writer, NullString _, JsonSerializerOptions options)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+        }
+
+        internal sealed class JsonConverterPSObject : System.Text.Json.Serialization.JsonConverter<PSObject>
+        {
+            public override PSObject Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+    /*
+                string uriString = reader.GetString();
+                if (Uri.TryCreate(uriString, UriKind.RelativeOrAbsolute, out Uri value))
+                {
+                    return value;
+                }
+
+                ThrowHelper.ThrowJsonException();
+                return null;
+    */
+                throw new NotImplementedException();
+            }
+
+            public override void Write(Utf8JsonWriter writer, PSObject pso, JsonSerializerOptions options)
+            {
+                // context.CancellationToken.ThrowIfCancellationRequested();
+
+                if (LanguagePrimitives.IsNull(pso))
+                {
+                    writer.WriteNullValue();
+                    return;
+                }
+
+                //IDictionary dictionary = null;
+                //AppendPsProperties<System.Text.Json.Serialization.JsonIgnoreAttribute>(pso, dictionary, true);
+
+                var obj = pso.BaseObject;
+
+                bool isPurePSObj = false;
+                bool isCustomObj = false;
+
+                if (obj == NullString.Value
+                    || obj == DBNull.Value)
+                {
+                    obj = null;
+                }
+                else if (obj.GetType().IsPrimitive
+                    || obj.GetType().IsEnum
+                    || obj is string
+                    || obj is char
+                    || obj is bool
+                    || obj is DateTime
+                    || obj is DateTimeOffset
+                    || obj is Guid
+                    || obj is Uri
+                    || obj is double
+                    || obj is float
+                    || obj is decimal)
+                {
+                    //dictionary = obj;
+                    //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
+                }
+                else if (obj is Newtonsoft.Json.Linq.JObject jObject)
+                {
+                    obj = jObject.ToObject<Dictionary<object, object>>();
+                    //System.Text.Json.JsonSerializer.Serialize(writer, dict, dict.GetType(), options);
+                }
+                else
+                {
+                    if (writer.CurrentDepth >= options.MaxDepth)
+                    {
+                        if (pso != null && pso.ImmediateBaseObjectIsEmpty)
+                        {
+                            // The obj is a pure PSObject, we convert the original PSObject to a string,
+                            // instead of its base object in this case
+                            var rv = (string)LanguagePrimitives.ConvertTo(pso, typeof(string), CultureInfo.InvariantCulture);
+                            obj = rv;
+                            //writer.WriteStringValue(rv);
+                            isPurePSObj = true;
+                        }
+                        else
+                        {
+                            var rv = (string)LanguagePrimitives.ConvertTo(obj, typeof(string), CultureInfo.InvariantCulture);
+                            obj = rv;
+                            //writer.WriteStringValue(rv);
+                        }
+                    }
+                    else
+                    {
+                        var dictionary = obj as IDictionary;
+                        if (dictionary != null)
+                        {
+                            //rv = ProcessDictionary(dict, currentDepth, in context);
+                            //System.Text.Json.JsonSerializer.Serialize(writer, dict, dict.GetType(), options);
+                            //isDictionary = true;
+                            obj = dictionary;
+                        }
+                        else
+                        {
+                            IEnumerable enumerable = obj as IEnumerable;
+                            if (enumerable != null)
+                            {
+                                //rv = ProcessEnumerable(enumerable, currentDepth, in context);
+                                //System.Text.Json.JsonSerializer.Serialize(writer, enumerable, enumerable.GetType(), options);
+                                //obj = rv;
+                            }
+                            else
+                            {
+                                // PSCustomObject or C# object
+                                obj = new Dictionary<string, object>();
+                                // Since the converter is for PSObject only
+                                // we already have all properties in the PSObject
+                                // so makes no sense to collect the same properties from base object.
+                                //
+                                //obj = ProcessCustomObject<System.Text.Json.Serialization.JsonIgnoreAttribute>(obj);
+                                //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
+                                isCustomObj = true;
+                            }
+                        }
+                    }
+                }
+
+                SerializePsProperties(writer, pso, obj, isPurePSObj, isCustomObj, options);
+                //writer.WriteStringValue(value.OriginalString);
+                //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
+            }
+        }
+
+        private static void SerializePsProperties(Utf8JsonWriter writer, PSObject pso, object obj, bool isPurePSObj, bool isCustomObj, JsonSerializerOptions options)
+        {
+            // when isPurePSObj is true, the obj is guaranteed to be a string converted by LanguagePrimitives
+            if (isPurePSObj)
+            {
+                System.Text.Json.JsonSerializer.Serialize(writer, obj, obj?.GetType(), options);
+                return;
+            }
+
+            bool wasDictionary = true;
+            IDictionary dict = obj as IDictionary;
+
+            if (dict == null)
+            {
+                wasDictionary = false;
+                dict = new Dictionary<string, object>();
+                dict.Add("value", obj);
+            }
+
+            AppendPsProperties(pso, dict, isCustomObj);
+
+            if (wasDictionary == false && dict.Count == 1)
+            {
+                System.Text.Json.JsonSerializer.Serialize(writer, obj, obj?.GetType(), options);
+                return;
+            }
+
+            // We could use System.Text.Json.JsonSerializer.Serialize(writer, dict, options);
+            // But in the case Depth parameter works unpredictable.
+            // Native object serialization eats 1 depth level.
+            // PSObject serialization eats 2 depth level (beacause we convert to Dictionary):
+            //     1. PSObject's extended properties
+            //     2. PSObject.BaseObject
+            // So we use follow workaround:
+            writer.WriteStartObject();
+            foreach (DictionaryEntry e in dict)
+            {
+                writer.WritePropertyName(e.Key.ToString());
+                try
+                {
+                    System.Text.Json.JsonSerializer.Serialize(writer, e.Value, options);
+                }
+                catch
+                {
+                    // It is a workaround for Depth. I hope to remove it.
+                }
+            }
+
+            writer.WriteEndObject();
+        }
+
+        private static void AppendPsProperties(PSObject psObj, IDictionary receiver, bool isCustomObject)
+        {
+            // serialize only Extended and Adapted properties..
+            PSMemberInfoCollection<PSPropertyInfo> srcPropertiesToSearch =
+                new PSMemberInfoIntegratingCollection<PSPropertyInfo>(psObj,
+                    isCustomObject ? PSObject.GetPropertyCollection(PSMemberViewTypes.Extended | PSMemberViewTypes.Adapted) :
+                    PSObject.GetPropertyCollection(PSMemberViewTypes.Extended));
+
+            foreach (PSPropertyInfo prop in srcPropertiesToSearch)
+            {
+                if (prop is PSProperty psproperty && psproperty.IsDefined(typeof(System.Text.Json.Serialization.JsonIgnoreAttribute)))
+                {
+                    continue;
+                }
+
+                object value = null;
+                try
+                {
+                    value = prop.Value;
+                }
+                catch (Exception)
+                {
+                }
+
+                if (!receiver.Contains(prop.Name))
+                {
+                    receiver[prop.Name] = value;
+                }
+            }
+        }
+
+        private static IDictionary ProcessCustomObject<T>(object o)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            Type t = o.GetType();
+
+            foreach (FieldInfo info in t.GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!info.IsDefined(typeof(T), true))
+                {
+                    object value;
+                    try
+                    {
+                        value = info.GetValue(o);
+                    }
+                    catch (Exception)
+                    {
+                        value = null;
+                    }
+
+                    result.Add(info.Name, value);
+                }
+            }
+
+            foreach (PropertyInfo info2 in t.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!info2.IsDefined(typeof(T), true))
+                {
+                    MethodInfo getMethod = info2.GetGetMethod();
+                    if ((getMethod != null) && (getMethod.GetParameters().Length <= 0))
+                    {
+                        object value;
+                        try
+                        {
+                            value = getMethod.Invoke(o, Array.Empty<object>());
+                        }
+                        catch (Exception)
+                        {
+                            value = null;
+                        }
+
+                        result.Add(info2.Name, value);
+                    }
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -591,7 +908,7 @@ namespace Microsoft.PowerShell.Commands
                             }
                             else
                             {
-                                rv = ProcessCustomObject<JsonIgnoreAttribute>(obj, currentDepth, in context);
+                                rv = ProcessCustomObject<Newtonsoft.Json.JsonIgnoreAttribute>(obj, currentDepth, in context);
                                 isCustomObj = true;
                             }
                         }

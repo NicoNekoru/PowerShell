@@ -5,23 +5,7 @@ Describe 'ConvertTo-Json' -tags "CI" {
         $newline = [System.Environment]::NewLine
     }
 
-    It 'Newtonsoft.Json.Linq.Jproperty should be converted to Json properly' {
-        $EgJObject = New-Object -TypeName Newtonsoft.Json.Linq.JObject
-        $EgJObject.Add("TestValue1", "123456")
-        $EgJObject.Add("TestValue2", "78910")
-        $EgJObject.Add("TestValue3", "99999")
-        $dict = @{}
-        $dict.Add('JObject', $EgJObject)
-        $dict.Add('StrObject', 'This is a string Object')
-        $properties = @{'DictObject' = $dict; 'RandomString' = 'A quick brown fox jumped over the lazy dog'}
-        $object = New-Object -TypeName psobject -Property $properties
-        $jsonFormat = ConvertTo-Json -InputObject $object
-        $jsonFormat | Should -Match '"TestValue1": 123456'
-        $jsonFormat | Should -Match '"TestValue2": 78910'
-        $jsonFormat | Should -Match '"TestValue3": 99999'
-    }
-
-	It "StopProcessing should succeed" -Pending:$true {
+    It "StopProcessing should succeed" -Pending:$true {
         $ps = [PowerShell]::Create()
         $null = $ps.AddScript({
             $obj = [PSCustomObject]@{P1 = ''; P2 = ''; P3 = ''; P4 = ''; P5 = ''; P6 = ''}
@@ -63,6 +47,25 @@ Describe 'ConvertTo-Json' -tags "CI" {
         @{ 'abc' = "'def'" } | ConvertTo-Json @params | Should -BeExactly $expected
     }
 
+    It "The result string should be escaped: <Name>." -TestCases @(
+        @{name = "Default with HTML chars";             params = @{EscapeHandling = 'Default'};        source = "`",',\,<,>,&,+,``,`n";       expected = '"\",'',\\,<,>,&,+,`,\n"' }
+        @{name = "EscapeHtml with HTML chars";          params = @{EscapeHandling = 'EscapeHtml'};     source = "`",',\,<,>,&,+,``,`n";       expected = '"\u0022,\u0027,\\,\u003C,\u003E,\u0026,\u002B,\u0060,\n"' }
+        @{name = "EscapeNonAscii with HTML chars";      params = @{EscapeHandling = 'EscapeNonAscii'}; source = "`",',\,<,>,&,+,``,`n";       expected = '"\u0022,\u0027,\\,\u003C,\u003E,\u0026,\u002B,\u0060,\n"' }
+        @{name = "Default with ASCII chars";            params = @{EscapeHandling = 'Default'};        source = "abcdefghijklmnopqrstuvwxyz"; expected = '"abcdefghijklmnopqrstuvwxyz"' }
+        @{name = "EscapeHtml with ASCII chars";         params = @{EscapeHandling = 'EscapeHtml'};     source = "abcdefghijklmnopqrstuvwxyz"; expected = '"abcdefghijklmnopqrstuvwxyz"' }
+        @{name = "EscapeNonAscii with ASCII chars";     params = @{EscapeHandling = 'EscapeNonAscii'}; source = "abcdefghijklmnopqrstuvwxyz"; expected = '"abcdefghijklmnopqrstuvwxyz"' }
+        @{name = "Default with non-ASCII chars";        params = @{EscapeHandling = 'Default'};        source = "яб";                         expected = '"яб"' }
+        @{name = "EscapeHtml with non-ASCII chars";     params = @{EscapeHandling = 'EscapeHtml'};     source = "яб";                         expected = '"\u044F\u0431"' }
+        @{name = "EscapeNonAscii non-ASCII with chars"; params = @{EscapeHandling = 'EscapeNonAscii'}; source = "яб";                         expected = '"\u044F\u0431"' }
+        @{name = "Default with empty string";           params = @{EscapeHandling = 'Default'};        source = "";                           expected = "`"`"" }
+        @{name = "EscapeHtml with empty string";        params = @{EscapeHandling = 'EscapeHtml'};     source = "";                           expected = "`"`"" }
+        @{name = "EscapeNonAscii with empty string";    params = @{EscapeHandling = 'EscapeNonAscii'}; source = "";                           expected = "`"`"" }
+    ) {
+        param ($name, $params , $source, $expected)
+
+        $source | ConvertTo-Json @params | Should -BeExactly $expected
+    }
+
     It "Should handle null" {
         [pscustomobject] @{ prop=$null } | ConvertTo-Json -Compress | Should -BeExactly '{"prop":null}'
         $null | ConvertTo-Json -Compress | Should -Be 'null'
@@ -102,5 +105,70 @@ Describe 'ConvertTo-Json' -tags "CI" {
             $p1.psobject.Properties.Remove('dbnull')
             $p2.psobject.Properties.Remove('nullstr')
         }
+    }
+
+    It "Parameter works: -Depth <depth>" -TestCases: @(
+        @{ depth = 1; expected = '{"prop4":"@{prop3=}"}'}
+        @{ depth = 2; expected = '{"prop4":{"prop3":"@{prop2=}"}}'}
+        @{ depth = 3; expected = '{"prop4":{"prop3":{"prop2":"@{prop1=}"}}}'}
+        @{ depth = 4; expected = '{"prop4":{"prop3":{"prop2":{"prop1":null}}}}'}
+        @{ depth = 5; expected = '{"prop4":{"prop3":{"prop2":{"prop1":null}}}}'}
+    ) {
+        param ($depth, $expected)
+
+        $a1 = [pscustomobject] @{ prop1=$null }
+        $a2 = [pscustomobject] @{ prop2=$a1 }
+        $a3 = [pscustomobject] @{ prop3=$a2 }
+        $a4 = [pscustomobject] @{ prop4=$a3 }
+
+        $a4 | ConvertTo-Json -Depth $depth -Compress | Should -BeExactly $expected
+    }
+
+    It "Attrtibute works: JsonIgnoreAttribute" {
+        class TestSerializationClass
+         {
+             [System.Text.Json.Serialization.JsonIgnoreAttribute()][string] $testName
+             [string] $testFile
+         }
+
+        $testClass = @"
+        using System;
+        namespace Test.Serialization
+        {
+            public class Test
+            {
+                public string strValue { get; set; }
+                public int intValue { get; set; }
+                public DateTime dtValue { get; set; }
+                [System.Text.Json.Serialization.JsonIgnoreAttribute]
+                public string ignoreValue { get; set; }
+            }
+        }
+"@
+        Add-Type -TypeDefinition $testClass
+
+        $testPowerShell = [TestSerializationClass]::new()
+        $testCSharp = [Test.Serialization.Test]::new()
+
+        # Pipeline convertes $testPowerShell to PSObject - PowerShell PSObject custom serializer is used.
+        # InputObject accepts $InputObject 'as-is' without converting to PSObject - Core serializer is used.
+        $testPowerShell | ConvertTo-Json -Compress | Should -BeExactly '{"testFile":null}'
+        ConvertTo-Json -Compress -InputObject $testPowerShell | Should -BeExactly '{"testFile":null}'
+
+        $testCSharp | ConvertTo-Json -Compress | Should -BeExactly '{"strValue":null,"intValue":0,"dtValue":"0001-01-01T00:00:00"}'
+        ConvertTo-Json -Compress -InputObject $testCSharp| Should -BeExactly '{"strValue":null,"intValue":0,"dtValue":"0001-01-01T00:00:00"}'
+    }
+
+    It "Enumerable works" {
+        $list=[array](1,2,3)
+
+        $list | ConvertTo-Json -Compress | Should -BeExactly '[1,2,3]'
+        ConvertTo-Json -Compress -InputObject $list | Should -BeExactly '[1,2,3]'
+        ,$list | ConvertTo-Json -Compress | Should -BeExactly '[1,2,3]'
+
+        Add-Member -InputObject $list -NotePropertyName test -NotePropertyValue 100
+
+        ,$list | ConvertTo-Json -Compress | Should -BeExactly '{"value":[1,2,3],"test":100}'
+
     }
 }
