@@ -124,11 +124,12 @@ Describe 'ConvertTo-Json' -tags "CI" {
         $a4 | ConvertTo-Json -Depth $depth -Compress | Should -BeExactly $expected
     }
 
-    It "Attrtibute works: JsonIgnoreAttribute" {
+    It "Attrtibute works: JsonIgnoreAttribute and Hidden" {
         class TestSerializationClass
          {
              [System.Text.Json.Serialization.JsonIgnoreAttribute()][string] $testName
              [string] $testFile
+             hidden [string] $testHiddenValue
          }
 
         $testClass = @"
@@ -152,8 +153,9 @@ Describe 'ConvertTo-Json' -tags "CI" {
 
         # Pipeline convertes $testPowerShell to PSObject - PowerShell PSObject custom serializer is used.
         # InputObject accepts $InputObject 'as-is' without converting to PSObject - Core serializer is used.
+        # For second 'Hidden' doesn't work - it is only PowerShell pseudo attribute.
         $testPowerShell | ConvertTo-Json -Compress | Should -BeExactly '{"testFile":null}'
-        ConvertTo-Json -Compress -InputObject $testPowerShell | Should -BeExactly '{"testFile":null}'
+        ConvertTo-Json -Compress -InputObject $testPowerShell | Should -BeExactly '{"testFile":null,"testHiddenValue":null}'
 
         $testCSharp | ConvertTo-Json -Compress | Should -BeExactly '{"strValue":null,"intValue":0,"dtValue":"0001-01-01T00:00:00"}'
         ConvertTo-Json -Compress -InputObject $testCSharp| Should -BeExactly '{"strValue":null,"intValue":0,"dtValue":"0001-01-01T00:00:00"}'
@@ -170,5 +172,13 @@ Describe 'ConvertTo-Json' -tags "CI" {
 
         ,$list | ConvertTo-Json -Compress | Should -BeExactly '{"value":[1,2,3],"test":100}'
 
+    }
+
+    It "Cycle detection works" {
+        $Test = @{Guid = New-Guid}
+        $Test.Parent = $Test
+
+        $exc = { ConvertTo-Json -InputObject $test } | Should -PassThru -Throw -ErrorId "System.Text.Json.JsonException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
+        $exc.Exception.TargetSite.Name | Should -BeExactly "ThrowInvalidOperationException_SerializerCycleDetected"
     }
 }
