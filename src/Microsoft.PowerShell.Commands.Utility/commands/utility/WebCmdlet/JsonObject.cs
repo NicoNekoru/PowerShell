@@ -11,6 +11,7 @@ using System.Management.Automation.Language;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 using System.Threading;
@@ -502,6 +503,7 @@ namespace Microsoft.PowerShell.Commands
                     options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
                 }
 
+                options.Converters.Add(new JsonStringEnumConverter64());
                 options.Converters.Add(new JsonConverterPSObject());
                 options.Converters.Add(new JsonConverterNullString());
                 options.Converters.Add(new JsonConverterDBNull());
@@ -546,6 +548,44 @@ namespace Microsoft.PowerShell.Commands
             {
                 writer.WriteNullValue();
                 return;
+            }
+        }
+
+        /// <summary>
+        /// Converter to convert enums to and from strings with a workaround for long- and ulong-based enums.
+        /// </summary>
+        /// <remarks>
+        /// Win8:378368 Enums based on System.Int64 or System.UInt64 are not JSON-serializable
+        /// because JavaScript does not support the necessary precision.
+        /// </remarks>
+        private class JsonStringEnumConverter64 : JsonConverterFactory
+        {
+            /// <summary>
+            /// Initialize an instance of the <see cref="JsonStringEnumConverter64"/> with the
+            /// default naming policy and allows integer values.
+            /// </summary>
+            public JsonStringEnumConverter64()
+            {
+                // An empty constructor is needed for construction via attributes
+            }
+
+            /// <inheritdoc />
+            public override bool CanConvert(Type typeToConvert)
+            {
+                if (!typeToConvert.IsEnum)
+                {
+                    return false;
+                }
+
+                var underlyingType = Enum.GetUnderlyingType(typeToConvert);
+                return (underlyingType == typeof(long) || underlyingType == typeof(ulong));
+            }
+
+            /// <inheritdoc />
+            public override System.Text.Json.Serialization.JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+            {
+                var a = new JsonStringEnumConverter(namingPolicy: null, allowIntegerValues: false);
+                return a.CreateConverter(typeToConvert, options);
             }
         }
 
