@@ -473,17 +473,6 @@ namespace Microsoft.PowerShell.Commands
         {
             try
             {
-                // Pre-process the object so that it serializes the same, except that properties whose
-                // values cannot be evaluated are treated as having the value null.
-                //object preprocessedObject = ProcessValue(objectToProcess, currentDepth: 0, in context);
-                var jsonSettings = new JsonSerializerSettings
-                {
-                    // This TypeNameHandling setting is required to be secure.
-                    TypeNameHandling = TypeNameHandling.None,
-                    MaxDepth = 1024,
-                    StringEscapeHandling = context.StringEscapeHandling
-                };
-
                 var options = new JsonSerializerOptions()
                 {
                     WriteIndented = !context.CompressOutput,
