@@ -41,7 +41,7 @@ Describe "Json Tests" -Tags "Feature" {
             # Test follow-up for bug WinBlue: 163372 - ConvertTo-JSON has hard coded english error message.
             $process = Get-Process -Id $PID
             $hash = @{ $process = "def" }
-            $expectedFullyQualifiedErrorId = "NonStringKeyInDictionary,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
+            $expectedFullyQualifiedErrorId = "'System.NotSupportedException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
 
             { ConvertTo-Json -InputObject $hash } | Should -Throw -ErrorId $expectedFullyQualifiedErrorId
         }
