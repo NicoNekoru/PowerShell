@@ -107,21 +107,15 @@ Describe 'ConvertTo-Json' -tags "CI" {
         }
     }
 
-    It "Parameter works: -Depth <depth>" -TestCases: @(
-        @{ depth = 1; expected = '{"prop4":"@{prop3=}"}'}
-        @{ depth = 2; expected = '{"prop4":{"prop3":"@{prop2=}"}}'}
-        @{ depth = 3; expected = '{"prop4":{"prop3":{"prop2":"@{prop1=}"}}}'}
-        @{ depth = 4; expected = '{"prop4":{"prop3":{"prop2":{"prop1":null}}}}'}
-        @{ depth = 5; expected = '{"prop4":{"prop3":{"prop2":{"prop1":null}}}}'}
-    ) {
-        param ($depth, $expected)
-
+    It "Parameter works: -Depth <depth>" {
         $a1 = [pscustomobject] @{ prop1=$null }
         $a2 = [pscustomobject] @{ prop2=$a1 }
         $a3 = [pscustomobject] @{ prop3=$a2 }
         $a4 = [pscustomobject] @{ prop4=$a3 }
 
-        $a4 | ConvertTo-Json -Depth $depth -Compress | Should -BeExactly $expected
+        $a4 | ConvertTo-Json -Depth 5 -Compress | Should -BeExactly '{"prop4":{"prop3":{"prop2":{"prop1":null}}}}'
+        $exc = { $a4 | ConvertTo-Json -Depth 4 -Compress } | Should -PassThru -Throw -ErrorId "System.Text.Json.JsonException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
+        $exc.Exception.TargetSite.Name | Should -BeExactly "ThrowInvalidOperationException_SerializerCycleDetected"
     }
 
     It "Attrtibute works: JsonIgnoreAttribute and Hidden" {

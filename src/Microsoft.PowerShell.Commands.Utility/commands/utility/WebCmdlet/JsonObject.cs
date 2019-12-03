@@ -727,28 +727,7 @@ namespace Microsoft.PowerShell.Commands
                 return;
             }
 
-            // We could use System.Text.Json.JsonSerializer.Serialize(writer, dict, options);
-            // But in the case Depth parameter works unpredictable.
-            // Native object serialization eats 1 depth level.
-            // PSObject serialization eats 2 depth level (beacause we convert to Dictionary):
-            //     1. PSObject's extended properties
-            //     2. PSObject.BaseObject
-            // So we use follow workaround:
-            writer.WriteStartObject();
-            foreach (DictionaryEntry e in dict)
-            {
-                writer.WritePropertyName(e.Key.ToString());
-                try
-                {
-                    System.Text.Json.JsonSerializer.Serialize(writer, e.Value, options);
-                }
-                catch
-                {
-                    // It is a workaround for Depth. I hope to remove it.
-                }
-            }
-
-            writer.WriteEndObject();
+            System.Text.Json.JsonSerializer.Serialize(writer, dict, options);
         }
 
         private static void AppendPsProperties(PSObject psObj, IDictionary receiver, bool isCustomObject)
