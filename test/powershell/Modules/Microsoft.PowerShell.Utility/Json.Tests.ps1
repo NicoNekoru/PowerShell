@@ -1006,8 +1006,8 @@ Describe "Validate Json serialization" -Tags "CI" {
              }
             @{
                 TestInput = 127
-                ToJson = '""'
-                FromJson = ''
+                ToJson = '"\u007F"'
+                FromJson =  "`u{007F}"
              }
         )
 
