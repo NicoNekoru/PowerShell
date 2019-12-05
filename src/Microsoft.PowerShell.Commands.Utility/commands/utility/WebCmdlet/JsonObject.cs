@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -497,14 +498,7 @@ namespace Microsoft.PowerShell.Commands
                 options.Converters.Add(new JsonConverterNullString());
                 options.Converters.Add(new JsonConverterDBNull());
 
-                //if (preprocessedObject == null)
-                //{
-                //    return System.Text.Json.JsonSerializer.Serialize(preprocessedObject, null, options);
-                //}
-
                 return System.Text.Json.JsonSerializer.Serialize(objectToProcess, objectToProcess?.GetType(), options);
-                //return System.Text.Json.JsonSerializer.Serialize(preprocessedObject, preprocessedObject.GetType(), options);
-
             }
             catch (OperationCanceledException)
             {
@@ -514,11 +508,13 @@ namespace Microsoft.PowerShell.Commands
 
         private sealed class JsonConverterDBNull : System.Text.Json.Serialization.JsonConverter<DBNull>
         {
+            /// <inheritdoc />
             public override DBNull Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 throw new NotImplementedException();
             }
 
+            /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, DBNull _, JsonSerializerOptions options)
             {
                 writer.WriteNullValue();
@@ -528,11 +524,13 @@ namespace Microsoft.PowerShell.Commands
 
         private sealed class JsonConverterNullString : System.Text.Json.Serialization.JsonConverter<NullString>
         {
+            /// <inheritdoc />
             public override NullString Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 throw new NotImplementedException();
             }
 
+            /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, NullString _, JsonSerializerOptions options)
             {
                 writer.WriteNullValue();
@@ -550,8 +548,8 @@ namespace Microsoft.PowerShell.Commands
         private class JsonStringEnumConverter64 : JsonConverterFactory
         {
             /// <summary>
-            /// Initialize an instance of the <see cref="JsonStringEnumConverter64"/> with the
-            /// default naming policy and allows integer values.
+            /// Initialize an instance of the <see cref="JsonStringEnumConverter64"/>
+            /// with the default naming policy and allows integer values.
             /// </summary>
             public JsonStringEnumConverter64()
             {
@@ -580,6 +578,7 @@ namespace Microsoft.PowerShell.Commands
 
         internal sealed class JsonConverterPSObject : System.Text.Json.Serialization.JsonConverter<PSObject>
         {
+            /// <inheritdoc />
             public override PSObject Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
     /*
@@ -595,6 +594,7 @@ namespace Microsoft.PowerShell.Commands
                 throw new NotImplementedException();
             }
 
+            /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, PSObject pso, JsonSerializerOptions options)
             {
                 // context.CancellationToken.ThrowIfCancellationRequested();
@@ -605,9 +605,6 @@ namespace Microsoft.PowerShell.Commands
                     return;
                 }
 
-                //IDictionary dictionary = null;
-                //AppendPsProperties<System.Text.Json.Serialization.JsonIgnoreAttribute>(pso, dictionary, true);
-
                 var obj = pso.BaseObject;
 
                 bool isCustomObj = false;
@@ -617,7 +614,38 @@ namespace Microsoft.PowerShell.Commands
                 {
                     obj = null;
                 }
-                else if (obj.GetType().IsPrimitive
+                else if (IsSimpleType(obj))
+                {
+                    // If PSObject wraps a simple type like int, string, DateTime, and so on
+                    // we serialize the base object directly.
+                }
+                else if (obj is Newtonsoft.Json.Linq.JObject jObject)
+                {
+                    obj = jObject.ToObject<Dictionary<object, object>>();
+                }
+                else
+                {
+                    var dictionary = obj as IDictionary;
+                    if (!(obj is IDictionary) && !(obj is IEnumerable))
+                    {
+                        // PSCustomObject or C# object
+                        obj = new Dictionary<string, object>();
+                        isCustomObj = true;
+
+                        // Since the converter is for PSObject only
+                        // we already have all properties in the PSObject
+                        // so makes no sense to collect the same properties from base object here.
+                    }
+                }
+
+                SerializePsProperties(writer, pso, obj, isCustomObj, options);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsSimpleType(object obj)
+        {
+            return (obj.GetType().IsPrimitive
                     || obj.GetType().IsEnum
                     || obj is string
                     || obj is char
@@ -628,38 +656,7 @@ namespace Microsoft.PowerShell.Commands
                     || obj is Uri
                     || obj is double
                     || obj is float
-                    || obj is decimal)
-                {
-                    //dictionary = obj;
-                    //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
-                }
-                else if (obj is Newtonsoft.Json.Linq.JObject jObject)
-                {
-                    obj = jObject.ToObject<Dictionary<object, object>>();
-                    //System.Text.Json.JsonSerializer.Serialize(writer, dict, dict.GetType(), options);
-                }
-                else
-                {
-                    var dictionary = obj as IDictionary;
-                    if (!(obj is IDictionary) && !(obj is IEnumerable))
-                    {
-                        // PSCustomObject or C# object
-                        obj = new Dictionary<string, object>();
-
-                        // Since the converter is for PSObject only
-                        // we already have all properties in the PSObject
-                        // so makes no sense to collect the same properties from base object.
-                        //
-                        //obj = ProcessCustomObject<System.Text.Json.Serialization.JsonIgnoreAttribute>(obj);
-                        //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
-                        isCustomObj = true;
-                    }
-                }
-
-                SerializePsProperties(writer, pso, obj, isCustomObj, options);
-                //writer.WriteStringValue(value.OriginalString);
-                //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
-            }
+                    || obj is decimal);
         }
 
         private static void SerializePsProperties(Utf8JsonWriter writer, PSObject pso, object obj, bool isCustomObj, JsonSerializerOptions options)
