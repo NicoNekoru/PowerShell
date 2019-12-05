@@ -610,7 +610,6 @@ namespace Microsoft.PowerShell.Commands
 
                 var obj = pso.BaseObject;
 
-                bool isPurePSObj = false;
                 bool isCustomObj = false;
 
                 if (obj == NullString.Value
@@ -641,74 +640,46 @@ namespace Microsoft.PowerShell.Commands
                 }
                 else
                 {
-                    if (writer.CurrentDepth >= options.MaxDepth)
+                    var dictionary = obj as IDictionary;
+                    if (dictionary != null)
                     {
-                        if (pso != null && pso.ImmediateBaseObjectIsEmpty)
-                        {
-                            // The obj is a pure PSObject, we convert the original PSObject to a string,
-                            // instead of its base object in this case
-                            var rv = (string)LanguagePrimitives.ConvertTo(pso, typeof(string), CultureInfo.InvariantCulture);
-                            obj = rv;
-                            //writer.WriteStringValue(rv);
-                            isPurePSObj = true;
-                        }
-                        else
-                        {
-                            var rv = (string)LanguagePrimitives.ConvertTo(obj, typeof(string), CultureInfo.InvariantCulture);
-                            obj = rv;
-                            //writer.WriteStringValue(rv);
-                        }
+                        //rv = ProcessDictionary(dict, currentDepth, in context);
+                        //System.Text.Json.JsonSerializer.Serialize(writer, dict, dict.GetType(), options);
+                        //isDictionary = true;
+                        obj = dictionary;
                     }
                     else
                     {
-                        var dictionary = obj as IDictionary;
-                        if (dictionary != null)
+                        IEnumerable enumerable = obj as IEnumerable;
+                        if (enumerable != null)
                         {
-                            //rv = ProcessDictionary(dict, currentDepth, in context);
-                            //System.Text.Json.JsonSerializer.Serialize(writer, dict, dict.GetType(), options);
-                            //isDictionary = true;
-                            obj = dictionary;
+                            //rv = ProcessEnumerable(enumerable, currentDepth, in context);
+                            //System.Text.Json.JsonSerializer.Serialize(writer, enumerable, enumerable.GetType(), options);
+                            //obj = rv;
                         }
                         else
                         {
-                            IEnumerable enumerable = obj as IEnumerable;
-                            if (enumerable != null)
-                            {
-                                //rv = ProcessEnumerable(enumerable, currentDepth, in context);
-                                //System.Text.Json.JsonSerializer.Serialize(writer, enumerable, enumerable.GetType(), options);
-                                //obj = rv;
-                            }
-                            else
-                            {
-                                // PSCustomObject or C# object
-                                obj = new Dictionary<string, object>();
-                                // Since the converter is for PSObject only
-                                // we already have all properties in the PSObject
-                                // so makes no sense to collect the same properties from base object.
-                                //
-                                //obj = ProcessCustomObject<System.Text.Json.Serialization.JsonIgnoreAttribute>(obj);
-                                //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
-                                isCustomObj = true;
-                            }
+                            // PSCustomObject or C# object
+                            obj = new Dictionary<string, object>();
+                            // Since the converter is for PSObject only
+                            // we already have all properties in the PSObject
+                            // so makes no sense to collect the same properties from base object.
+                            //
+                            //obj = ProcessCustomObject<System.Text.Json.Serialization.JsonIgnoreAttribute>(obj);
+                            //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
+                            isCustomObj = true;
                         }
                     }
                 }
 
-                SerializePsProperties(writer, pso, obj, isPurePSObj, isCustomObj, options);
+                SerializePsProperties(writer, pso, obj, isCustomObj, options);
                 //writer.WriteStringValue(value.OriginalString);
                 //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
             }
         }
 
-        private static void SerializePsProperties(Utf8JsonWriter writer, PSObject pso, object obj, bool isPurePSObj, bool isCustomObj, JsonSerializerOptions options)
+        private static void SerializePsProperties(Utf8JsonWriter writer, PSObject pso, object obj, bool isCustomObj, JsonSerializerOptions options)
         {
-            // when isPurePSObj is true, the obj is guaranteed to be a string converted by LanguagePrimitives
-            if (isPurePSObj)
-            {
-                System.Text.Json.JsonSerializer.Serialize(writer, obj, obj?.GetType(), options);
-                return;
-            }
-
             bool wasDictionary = true;
             IDictionary dict = obj as IDictionary;
 
