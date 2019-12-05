@@ -168,6 +168,18 @@ Describe 'ConvertTo-Json' -tags "CI" {
 
     }
 
+    It "DateTime works" {
+        $date = Get-Date -Year 2019 -Month 12 -Day 5 -Hour 1 -Minute 2 -Second 3 -Millisecond 4
+        $expected = "{`"value`":`"2019-12-05T01:02:03.+`",`"DisplayHint`":2,`"DateTime`":`"$($date.DateTime)`"}"
+        $date | ConvertTo-Json -Compress | Should -Match $expected
+    }
+
+    It "DateTime works" {
+        $uri = [uri]"https://google.com/"
+        $expected = '"https://google.com/"'
+        $uri | ConvertTo-Json -Compress | Should -BeExactly $expected
+    }
+
     It "Cycle detection works" {
         $Test = @{Guid = New-Guid}
         $Test.Parent = $Test
