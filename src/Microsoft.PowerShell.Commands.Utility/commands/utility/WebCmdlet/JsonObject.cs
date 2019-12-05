@@ -641,34 +641,18 @@ namespace Microsoft.PowerShell.Commands
                 else
                 {
                     var dictionary = obj as IDictionary;
-                    if (dictionary != null)
+                    if (!(obj is IDictionary) && !(obj is IEnumerable))
                     {
-                        //rv = ProcessDictionary(dict, currentDepth, in context);
-                        //System.Text.Json.JsonSerializer.Serialize(writer, dict, dict.GetType(), options);
-                        //isDictionary = true;
-                        obj = dictionary;
-                    }
-                    else
-                    {
-                        IEnumerable enumerable = obj as IEnumerable;
-                        if (enumerable != null)
-                        {
-                            //rv = ProcessEnumerable(enumerable, currentDepth, in context);
-                            //System.Text.Json.JsonSerializer.Serialize(writer, enumerable, enumerable.GetType(), options);
-                            //obj = rv;
-                        }
-                        else
-                        {
-                            // PSCustomObject or C# object
-                            obj = new Dictionary<string, object>();
-                            // Since the converter is for PSObject only
-                            // we already have all properties in the PSObject
-                            // so makes no sense to collect the same properties from base object.
-                            //
-                            //obj = ProcessCustomObject<System.Text.Json.Serialization.JsonIgnoreAttribute>(obj);
-                            //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
-                            isCustomObj = true;
-                        }
+                        // PSCustomObject or C# object
+                        obj = new Dictionary<string, object>();
+
+                        // Since the converter is for PSObject only
+                        // we already have all properties in the PSObject
+                        // so makes no sense to collect the same properties from base object.
+                        //
+                        //obj = ProcessCustomObject<System.Text.Json.Serialization.JsonIgnoreAttribute>(obj);
+                        //System.Text.Json.JsonSerializer.Serialize(writer, obj, obj.GetType(), options);
+                        isCustomObj = true;
                     }
                 }
 
