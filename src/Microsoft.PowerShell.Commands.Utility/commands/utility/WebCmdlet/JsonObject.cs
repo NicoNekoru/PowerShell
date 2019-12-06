@@ -534,7 +534,6 @@ namespace Microsoft.PowerShell.Commands
             public override void Write(Utf8JsonWriter writer, NullString _, JsonSerializerOptions options)
             {
                 writer.WriteNullValue();
-                return;
             }
         }
 
@@ -597,8 +596,6 @@ namespace Microsoft.PowerShell.Commands
             /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, PSObject pso, JsonSerializerOptions options)
             {
-                // context.CancellationToken.ThrowIfCancellationRequested();
-
                 if (LanguagePrimitives.IsNull(pso))
                 {
                     writer.WriteNullValue();
