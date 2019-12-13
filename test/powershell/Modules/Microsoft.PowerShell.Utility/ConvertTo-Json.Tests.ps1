@@ -2,8 +2,26 @@
 # Licensed under the MIT License.
 Describe 'ConvertTo-Json' -tags "CI" {
     BeforeAll {
+        $notNewConvertToJson = -not $EnabledExperimentalFeatures.Contains('Microsoft.PowerShell.Utility.NewConvertToJson')
         $newline = [System.Environment]::NewLine
     }
+
+    It 'Newtonsoft.Json.Linq.Jproperty should be converted to Json properly' -Skip:$notNewConvertToJson {
+        $EgJObject = New-Object -TypeName Newtonsoft.Json.Linq.JObject
+        $EgJObject.Add("TestValue1", "123456")
+        $EgJObject.Add("TestValue2", "78910")
+        $EgJObject.Add("TestValue3", "99999")
+        $dict = @{}
+        $dict.Add('JObject', $EgJObject)
+        $dict.Add('StrObject', 'This is a string Object')
+        $properties = @{'DictObject' = $dict; 'RandomString' = 'A quick brown fox jumped over the lazy dog'}
+        $object = New-Object -TypeName psobject -Property $properties
+        $jsonFormat = ConvertTo-Json -InputObject $object
+        $jsonFormat | Should -Match '"TestValue1": 123456'
+        $jsonFormat | Should -Match '"TestValue2": 78910'
+        $jsonFormat | Should -Match '"TestValue3": 99999'
+    }
+
 
     It "StopProcessing should succeed" -Pending:$true {
         $ps = [PowerShell]::Create()
@@ -47,7 +65,7 @@ Describe 'ConvertTo-Json' -tags "CI" {
         @{ 'abc' = "'def'" } | ConvertTo-Json @params | Should -BeExactly $expected
     }
 
-    It "The result string should be escaped: <Name>." -TestCases @(
+    It "The result string should be escaped: <Name>." -Skip:$notNewConvertToJson -TestCases @(
         @{name = "Default with HTML chars";             params = @{EscapeHandling = 'Default'};        source = "`",',\,<,>,&,+,``,`n";       expected = '"\",'',\\,<,>,&,+,`,\n"' }
         @{name = "EscapeHtml with HTML chars";          params = @{EscapeHandling = 'EscapeHtml'};     source = "`",',\,<,>,&,+,``,`n";       expected = '"\u0022,\u0027,\\,\u003C,\u003E,\u0026,\u002B,\u0060,\n"' }
         @{name = "EscapeNonAscii with HTML chars";      params = @{EscapeHandling = 'EscapeNonAscii'}; source = "`",',\,<,>,&,+,``,`n";       expected = '"\u0022,\u0027,\\,\u003C,\u003E,\u0026,\u002B,\u0060,\n"' }
@@ -107,7 +125,7 @@ Describe 'ConvertTo-Json' -tags "CI" {
         }
     }
 
-    It "Parameter works: -Depth <depth>" {
+    It "Parameter works: -Depth <depth>" -Skip:$notNewConvertToJson {
         $a1 = [pscustomobject] @{ prop1=$null }
         $a2 = [pscustomobject] @{ prop2=$a1 }
         $a3 = [pscustomobject] @{ prop3=$a2 }
@@ -118,7 +136,7 @@ Describe 'ConvertTo-Json' -tags "CI" {
         $exc.Exception.TargetSite.Name | Should -BeExactly "ThrowInvalidOperationException_SerializerCycleDetected"
     }
 
-    It "Attrtibute works: JsonIgnoreAttribute and Hidden" {
+    It "Attrtibute works: JsonIgnoreAttribute and Hidden" -Skip:$notNewConvertToJson {
         class TestSerializationClass
          {
              [System.Text.Json.Serialization.JsonIgnoreAttribute()][string] $testName
@@ -155,7 +173,7 @@ Describe 'ConvertTo-Json' -tags "CI" {
         ConvertTo-Json -Compress -InputObject $testCSharp| Should -BeExactly '{"strValue":null,"intValue":0,"dtValue":"0001-01-01T00:00:00"}'
     }
 
-    It "Enumerable works" {
+    It "Enumerable works" -Skip:$notNewConvertToJson {
         $list=[array](1,2,3)
 
         $list | ConvertTo-Json -Compress | Should -BeExactly '[1,2,3]'
@@ -168,19 +186,19 @@ Describe 'ConvertTo-Json' -tags "CI" {
 
     }
 
-    It "DateTime works" {
+    It "DateTime works" -Skip:$notNewConvertToJson {
         $date = Get-Date -Year 2019 -Month 12 -Day 5 -Hour 1 -Minute 2 -Second 3 -Millisecond 4
         $expected = "{`"value`":`"2019-12-05T01:02:03.+`",`"DisplayHint`":2,`"DateTime`":`"$($date.DateTime)`"}"
         $date | ConvertTo-Json -Compress | Should -Match $expected
     }
 
-    It "DateTime works" {
+    It "Uri works" -skip:$notNewConvertToJson {
         $uri = [uri]"https://google.com/"
         $expected = '"https://google.com/"'
         $uri | ConvertTo-Json -Compress | Should -BeExactly $expected
     }
 
-    It "Cycle detection works" {
+    It "Cycle detection works" -Skip:$notNewConvertToJson {
         $Test = @{Guid = New-Guid}
         $Test.Parent = $Test
 

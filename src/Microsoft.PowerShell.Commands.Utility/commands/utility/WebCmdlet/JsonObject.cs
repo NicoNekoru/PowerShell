@@ -18,6 +18,7 @@ using System.Text.Unicode;
 using System.Threading;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.PowerShell.Commands
@@ -452,6 +453,42 @@ namespace Microsoft.PowerShell.Commands
 
         #region ConvertToJson
 
+        /// <summary>
+        /// Convert an object to JSON string.
+        /// </summary>
+        public static string ConvertToJson(object objectToProcess, in ConvertToJsonContext context)
+        {
+            try
+            {
+                // Pre-process the object so that it serializes the same, except that properties whose
+                // values cannot be evaluated are treated as having the value null.
+                object preprocessedObject = ProcessValue(objectToProcess, currentDepth: 0, in context);
+                var jsonSettings = new JsonSerializerSettings
+                {
+                    // This TypeNameHandling setting is required to be secure.
+                    TypeNameHandling = TypeNameHandling.None,
+                    MaxDepth = 1024,
+                    StringEscapeHandling = context.StringEscapeHandling
+                };
+
+                if (context.EnumsAsStrings)
+                {
+                    jsonSettings.Converters.Add(new StringEnumConverter());
+                }
+
+                if (!context.CompressOutput)
+                {
+                    jsonSettings.Formatting = Formatting.Indented;
+                }
+
+                return JsonConvert.SerializeObject(preprocessedObject, jsonSettings);
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+        }
+
             // The implementation is the same as JavaScriptEncoder.Default but can be customized.
             // Default JavaScriptEncoder always escape HTML and follow codepoints (the comment come from .Net Core):
             // 1. Forbid codepoints which aren't mapped to characters or which are otherwise always disallowed
@@ -470,7 +507,7 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// Convert an object to JSON string.
         /// </summary>
-        public static string ConvertToJson(object objectToProcess, in ConvertToJsonContext context)
+        public static string ConvertToJson2(object objectToProcess, in ConvertToJsonContext context)
         {
             try
             {
