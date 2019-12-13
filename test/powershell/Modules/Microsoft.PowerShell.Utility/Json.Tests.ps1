@@ -1313,7 +1313,7 @@ Describe "Validate Json serialization" -Tags "CI" {
             ValidateProperties -serialized $result.SerializedViaJson -expected $result.Expected -properties $propertiesToValidate
         }
 
-        It "Validate 'Get-Command Get-help' output with Json conversion" -Pending:!$notNewConvertToJson {
+        It "Validate 'Get-Command Get-help' output with Json conversion" -Pending:(!$notNewConvertToJson) {
 
             $result = @{
                 Expected = @(Get-Command Get-help)
@@ -1324,7 +1324,7 @@ Describe "Validate Json serialization" -Tags "CI" {
             ValidateProperties -serialized $result.SerializedViaJson -expected $result.Expected -properties $propertiesToValidate
         }
 
-        It "Validate 'Get-Command Get-Help, Get-command, Get-Member' output with Json conversion" -Pending:!$notNewConvertToJson {
+        It "Validate 'Get-Command Get-Help, Get-command, Get-Member' output with Json conversion" -Pending:(!$notNewConvertToJson) {
 
             $result = @{
                 Expected = @(Get-Command Get-Help, Get-Command, Get-Member)

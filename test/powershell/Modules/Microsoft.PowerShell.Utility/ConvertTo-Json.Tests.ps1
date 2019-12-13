@@ -6,7 +6,7 @@ Describe 'ConvertTo-Json' -tags "CI" {
         $newline = [System.Environment]::NewLine
     }
 
-    It 'Newtonsoft.Json.Linq.Jproperty should be converted to Json properly' -Skip:$notNewConvertToJson {
+    It 'Newtonsoft.Json.Linq.Jproperty should be converted to Json properly' -Skip:(!$notNewConvertToJson) {
         $EgJObject = New-Object -TypeName Newtonsoft.Json.Linq.JObject
         $EgJObject.Add("TestValue1", "123456")
         $EgJObject.Add("TestValue2", "78910")
@@ -21,7 +21,6 @@ Describe 'ConvertTo-Json' -tags "CI" {
         $jsonFormat | Should -Match '"TestValue2": 78910'
         $jsonFormat | Should -Match '"TestValue3": 99999'
     }
-
 
     It "StopProcessing should succeed" -Pending:$true {
         $ps = [PowerShell]::Create()
