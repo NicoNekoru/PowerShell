@@ -158,6 +158,7 @@ namespace Microsoft.PowerShell.Commands
 
         /// <summary>
         /// Gets or sets the Depth property.
+        /// Default is 64 (it is .Net Core default).
         /// </summary>
         [Parameter]
         [ValidateRange(1, int.MaxValue)]
