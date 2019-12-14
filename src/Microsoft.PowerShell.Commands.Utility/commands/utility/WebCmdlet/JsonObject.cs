@@ -489,13 +489,13 @@ namespace Microsoft.PowerShell.Commands
             }
         }
 
-            // The implementation is the same as JavaScriptEncoder.Default but can be customized.
-            // Default JavaScriptEncoder always escape HTML and follow codepoints (the comment come from .Net Core):
-            // 1. Forbid codepoints which aren't mapped to characters or which are otherwise always disallowed
-            //    (includes categories Cc, Cs, Co, Cn, Zs [except U+0020 SPACE], Zl, Zp)
-            // 2. '\' (U+005C REVERSE SOLIDUS) must always be escaped in Javascript / ECMAScript / JSON.
-            //    '/' (U+002F SOLIDUS) is not Javascript / ECMAScript / JSON-sensitive so doesn't need to be escaped.
-            // 3. '`' (U+0060 GRAVE ACCENT) is ECMAScript-sensitive (see ECMA-262).
+        // The implementation is the same as JavaScriptEncoder.Default but can be customized.
+        // Default JavaScriptEncoder always escape HTML and follow codepoints (the comment come from .Net Core):
+        // 1. Forbid codepoints which aren't mapped to characters or which are otherwise always disallowed
+        //    (includes categories Cc, Cs, Co, Cn, Zs [except U+0020 SPACE], Zl, Zp)
+        // 2. '\' (U+005C REVERSE SOLIDUS) must always be escaped in Javascript / ECMAScript / JSON.
+        //    '/' (U+002F SOLIDUS) is not Javascript / ECMAScript / JSON-sensitive so doesn't need to be escaped.
+        // 3. '`' (U+0060 GRAVE ACCENT) is ECMAScript-sensitive (see ECMA-262).
         private static JavaScriptEncoder s_escapeNonAsciiEncoder = InitEscapeNonAsciiEncoder();
         private static JavaScriptEncoder InitEscapeNonAsciiEncoder()
         {
