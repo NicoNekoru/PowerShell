@@ -162,7 +162,8 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         [Parameter]
         [ValidateRange(1, int.MaxValue)]
-        public int Depth
+        [Alias("Depth")]
+        public int MaxDepth
         {
             get;
             set;
