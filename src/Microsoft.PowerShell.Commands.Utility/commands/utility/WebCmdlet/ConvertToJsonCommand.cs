@@ -209,7 +209,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         protected override void BeginProcessing()
         {
-            if (Depth > MaxDepthAllowed)
+            if (MaxDepth > MaxDepthAllowed)
             {
                 string errorMessage = StringUtil.Format(WebCmdletStrings.ReachedMaximumDepthAllowed, MaxDepthAllowed);
                 ThrowTerminatingError(new ErrorRecord(
@@ -240,7 +240,7 @@ namespace Microsoft.PowerShell.Commands
                 object objectToProcess = (_inputObjects.Count > 1 || AsArray) ? (_inputObjects.ToArray() as object) : _inputObjects[0];
 
                 var context = new JsonObject.ConvertToJsonContext(
-                    Depth,
+                    MaxDepth,
                     EnumsAsStrings.IsPresent,
                     Compress.IsPresent,
                     _cancellationSource.Token,
