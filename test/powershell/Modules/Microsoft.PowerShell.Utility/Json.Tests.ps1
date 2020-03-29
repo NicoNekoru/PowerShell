@@ -47,7 +47,7 @@ Describe "Json Tests" -Tags "Feature" {
             if ($notNewConvertToJson) {
                 $expectedFullyQualifiedErrorId = "NonStringKeyInDictionary,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
             } else {
-                $expectedFullyQualifiedErrorId = "System.NotSupportedException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
+                $expectedFullyQualifiedErrorId = "System.Text.Json.JsonException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
             }
 
             { ConvertTo-Json -InputObject $hash } | Should -Throw -ErrorId $expectedFullyQualifiedErrorId
