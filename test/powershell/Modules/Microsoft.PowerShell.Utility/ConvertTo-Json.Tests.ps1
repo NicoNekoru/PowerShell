@@ -132,7 +132,7 @@ Describe 'ConvertTo-Json' -tags "CI" {
 
         $a4 | ConvertTo-Json -Depth 5 -Compress | Should -BeExactly '{"prop4":{"prop3":{"prop2":{"prop1":null}}}}'
         $exc = { $a4 | ConvertTo-Json -Depth 4 -Compress } | Should -PassThru -Throw -ErrorId "System.Text.Json.JsonException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
-        $exc.Exception.TargetSite.Name | Should -BeExactly "ThrowInvalidOperationException_SerializerCycleDetected"
+        $exc.Exception.TargetSite.Name | Should -BeExactly "ThrowJsonException_SerializerCycleDetected"
     }
 
     It "Attrtibute works: JsonIgnoreAttribute and Hidden" -Skip:$notNewConvertToJson {
@@ -202,6 +202,6 @@ Describe 'ConvertTo-Json' -tags "CI" {
         $Test.Parent = $Test
 
         $exc = { ConvertTo-Json -InputObject $test } | Should -PassThru -Throw -ErrorId "System.Text.Json.JsonException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
-        $exc.Exception.TargetSite.Name | Should -BeExactly "ThrowInvalidOperationException_SerializerCycleDetected"
+        $exc.Exception.TargetSite.Name | Should -BeExactly "ThrowJsonException_SerializerCycleDetected"
     }
 }
