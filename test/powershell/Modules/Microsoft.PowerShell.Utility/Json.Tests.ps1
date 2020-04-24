@@ -1463,7 +1463,7 @@ Describe "Json Bug fixes"  -Tags "Feature" {
                 NumberOfElements = 100
                 MaxDepth = 100
                 FullyQualifiedErrorId = "System.Text.Json.JsonException,Microsoft.PowerShell.Commands.ConvertToJsonCommand"
-                TargetSiteName = "ThrowInvalidOperationException_SerializerCycleDetected"
+                TargetSiteName = "ThrowJsonException_SerializerCycleDetected"
                 ShouldThrow = $true
             }
             @{
