@@ -154,7 +154,6 @@ namespace Microsoft.PowerShell.Commands
         public object InputObject { get; set; }
 
         private const int MaxDepthAllowed = 1000;
-        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
 
         /// <summary>
         /// Gets or sets the Depth property.
@@ -163,11 +162,7 @@ namespace Microsoft.PowerShell.Commands
         [Parameter]
         [ValidateRange(1, int.MaxValue)]
         [Alias("Depth")]
-        public int MaxDepth
-        {
-            get;
-            set;
-        } = 64;
+        public int MaxDepth { get; set; } = 64;
 
         /// <summary>
         /// Gets or sets the Compress property.
@@ -212,12 +207,13 @@ namespace Microsoft.PowerShell.Commands
             if (MaxDepth > MaxDepthAllowed)
             {
                 string errorMessage = StringUtil.Format(WebCmdletStrings.ReachedMaximumDepthAllowed, MaxDepthAllowed);
-                ThrowTerminatingError(new ErrorRecord(
-                                new InvalidOperationException(errorMessage),
-                                "ReachedMaximumDepthAllowed",
-                                ErrorCategory.InvalidOperation,
-                                null));
-            }
+                ThrowTerminatingError(
+                    new ErrorRecord(
+                        new InvalidOperationException(errorMessage),
+                        "ReachedMaximumDepthAllowed",
+                        ErrorCategory.InvalidOperation,
+                        null));
+}
         }
 
         private List<object> _inputObjects = new List<object>();
@@ -243,7 +239,7 @@ namespace Microsoft.PowerShell.Commands
                     MaxDepth,
                     EnumsAsStrings.IsPresent,
                     Compress.IsPresent,
-                    _cancellationSource.Token,
+                    CancellationToken.None,
                     EscapeHandling,
                     targetCmdlet: this);
 
@@ -255,14 +251,6 @@ namespace Microsoft.PowerShell.Commands
                     WriteObject(output);
                 }
             }
-        }
-
-        /// <summary>
-        /// Process the Ctrl+C signal.
-        /// </summary>
-        protected override void StopProcessing()
-        {
-            _cancellationSource.Cancel();
         }
     }
 }
