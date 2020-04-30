@@ -509,6 +509,11 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         public static string ConvertToJson2(object objectToProcess, in ConvertToJsonContext context)
         {
+            if (objectToProcess is null)
+            {
+                return "null";
+            }
+
             try
             {
                 var options = new JsonSerializerOptions()
@@ -535,7 +540,7 @@ namespace Microsoft.PowerShell.Commands
                 options.Converters.Add(new JsonConverterNullString());
                 options.Converters.Add(new JsonConverterDBNull());
 
-                return System.Text.Json.JsonSerializer.Serialize(objectToProcess, objectToProcess?.GetType(), options);
+                return System.Text.Json.JsonSerializer.Serialize(objectToProcess, objectToProcess.GetType(), options);
             }
             catch (OperationCanceledException)
             {
