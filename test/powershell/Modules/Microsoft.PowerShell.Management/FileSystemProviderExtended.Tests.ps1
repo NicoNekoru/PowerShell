@@ -3,11 +3,25 @@
 
 Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI" {
     BeforeAll {
+        # on macOS, the /tmp directory is a symlink, so we'll resolve it here
+        $TestPath = $TestDrive
+        if ($IsMacOS)
+        {
+            $item = Get-Item $TestPath
+            $dirName = $item.BaseName
+            $item = Get-Item $item.PSParentPath -Force
+            if ($item.LinkType -eq "SymbolicLink")
+            {
+                $TestPath = Join-Path $item.Target $dirName
+            }
+        }
+
+
         $restoreLocation = Get-Location
 
         $DirSep = [IO.Path]::DirectorySeparatorChar
 
-        $rootDir = Join-Path "TestDrive:" "TestDir"
+        $rootDir = Join-Path $TestPath "TestDir"
         New-Item -Path $rootDir -ItemType Directory > $null
 
         Set-Location $rootDir
