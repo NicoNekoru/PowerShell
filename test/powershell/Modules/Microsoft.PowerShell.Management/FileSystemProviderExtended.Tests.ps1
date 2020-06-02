@@ -241,6 +241,7 @@ Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI
     Context 'Validate Get-ChildItem -Path -Recurse -Name' {
         It "Get-ChildItem -Path -Recurse -Name" {
             $result = Get-ChildItem -Path $rootDir -Recurse -Name
+            Write-Warning $result
             $result.Count | Should -Be 8
             $result[0] | Should -BeOfType System.String
         }
