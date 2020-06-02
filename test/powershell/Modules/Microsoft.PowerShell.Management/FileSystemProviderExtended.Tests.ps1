@@ -58,7 +58,17 @@ Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI
         (New-Item -Path "filereadonly3.doc" -ItemType File).Attributes = "ReadOnly"
 
         Set-Location $rootDir
-    }
+
+        $result = Get-ChildItem -Path $rootDir -Depth 0 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+        $result = Get-ChildItem -Path $rootDir -Depth 1 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+        $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+}
 
     AfterAll {
         #restore the previous location
@@ -345,15 +355,7 @@ Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI
         }
 
         It "Get-ChildItem -Path -Depth 2 -Name -Force" {
-            $result = Get-ChildItem -Path $rootDir -Depth 0 -Name -Force
-            $msg = $result | Out-String
-            Write-Warning $msg
-            $result = Get-ChildItem -Path $rootDir -Depth 1 -Name -Force
-            $msg = $result | Out-String
-            Write-Warning $msg
             $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
-            $msg = $result | Out-String
-            Write-Warning $msg
             $result.Count | Should -Be 13
             $result[0] | Should -BeOfType System.String
         }
