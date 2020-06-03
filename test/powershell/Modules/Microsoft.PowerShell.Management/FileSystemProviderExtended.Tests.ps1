@@ -358,7 +358,8 @@ Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI
             $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
             $msg = $result | Out-String
             Write-Warning $msg
-                $result.Count | Should -Be 14
+            1 | Should -Be 2
+            $result.Count | Should -Be 14
             $result[0] | Should -BeOfType System.String
         }
     }
