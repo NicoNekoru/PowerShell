@@ -356,12 +356,19 @@ Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI
 
         It "Get-ChildItem -Path -Depth 2 -Name -Force" {
             $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
-            $msg = $result | Out-String
-            Write-Warning $msg
-            1 | Should -Be 2
-            $result.Count | Should -Be 14
+            $result.Count | Should -Be 13
             $result[0] | Should -BeOfType System.String
         }
+    }
+
+    It "Get-ChildItem -Path -Depth 2 -Name -Force !!!!!!!!" {
+        $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+        Write-Warning ">>> $($result.Count)"
+        1 | Should -Be 2
+        $result.Count | Should -Be 14
+        $result[0] | Should -BeOfType System.String
     }
 
     Context 'Validate Get-ChildItem -Path -Filter' {
