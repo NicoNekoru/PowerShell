@@ -622,16 +622,6 @@ namespace Microsoft.PowerShell.Commands
             /// <inheritdoc />
             public override PSObject Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-    /*
-                string uriString = reader.GetString();
-                if (Uri.TryCreate(uriString, UriKind.RelativeOrAbsolute, out Uri value))
-                {
-                    return value;
-                }
-
-                ThrowHelper.ThrowJsonException();
-                return null;
-    */
                 throw new NotImplementedException();
             }
 
