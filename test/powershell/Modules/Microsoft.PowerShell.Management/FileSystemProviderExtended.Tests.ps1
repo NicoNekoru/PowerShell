@@ -1,6 +1,91 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+Describe "Extended1" -Tags "CI" {
+    BeforeAll {
+        # on macOS, the /tmp directory is a symlink, so we'll resolve it here
+        $TestPath = $TestDrive
+        if ($IsMacOS)
+        {
+            $item = Get-Item $TestPath
+            $dirName = $item.BaseName
+            $item = Get-Item $item.PSParentPath -Force
+            if ($item.LinkType -eq "SymbolicLink")
+            {
+                $TestPath = Join-Path $item.Target $dirName
+            }
+        }
+
+
+        $restoreLocation = Get-Location
+
+        $DirSep = [IO.Path]::DirectorySeparatorChar
+
+        $rootDir = Join-Path $TestPath "TestDir"
+        New-Item -Path $rootDir -ItemType Directory > $null
+
+        Set-Location $rootDir
+
+        New-Item -Path "file1.txt" -ItemType File > $null
+        (New-Item -Path ".filehidden1.doc" -ItemType File).Attributes = "Hidden"
+        $msg = (Get-Item ".filehidden1.doc" -Force).Attributes | Out-String
+        Write-Warning $msg
+        $result = Get-ChildItem -Path $rootDir -Recurse -Name
+        $msg = $result -join "`n"
+        Write-Warning $msg
+        $msg = Get-ChildItem -Path $rootDir -Recurse -Force | Out-String
+        Write-Warning $msg
+        $result = Get-ChildItem -Path $rootDir -Recurse -Name -Hidden
+        $msg = $result -join "`n"
+        Write-Warning $msg
+
+        (New-Item -Path "filereadonly1.asd" -ItemType File).Attributes = "ReadOnly"
+
+        New-Item -Path "subDir2" -ItemType Directory > $null
+        Set-Location "subDir2"
+        New-Item -Path "file2.txt" -ItemType File > $null
+        (New-Item -Path ".filehidden2.asd" -ItemType File).Attributes = "Hidden"
+        (New-Item -Path "filereadonly2.doc" -ItemType File).Attributes = "ReadOnly"
+        (New-Item -Path ".subDir21" -ItemType Directory).Attributes = "Hidden"
+        Set-Location ".subDir21"
+        New-Item -Path "file21.txt" -ItemType File > $null
+
+        Set-Location $rootDir
+        New-Item -Path "subDir3" -ItemType Directory > $null
+        Set-Location "subDir3"
+        New-Item -Path "file3.asd" -ItemType File > $null
+        (New-Item -Path ".filehidden3.txt" -ItemType File).Attributes = "Hidden"
+        (New-Item -Path "filereadonly3.doc" -ItemType File).Attributes = "ReadOnly"
+
+        Set-Location $rootDir
+
+        $result = Get-ChildItem -Path $rootDir -Depth 0 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+        $result = Get-ChildItem -Path $rootDir -Depth 1 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+        $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+    }
+
+    AfterAll {
+        #restore the previous location
+        Set-Location -Path $restoreLocation
+    }
+
+    It "Get-ChildItem -Path -Depth 2 -Name -Force !!!!!!!!" {
+        $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
+        $msg = $result | Out-String
+        Write-Warning $msg
+        Write-Warning ">>> $($result.Count)"
+        1 | Should -Be 2
+        $result.Count | Should -Be 14
+        $result[0] | Should -BeOfType System.String
+    }
+}
+
 Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI" {
     BeforeAll {
         # on macOS, the /tmp directory is a symlink, so we'll resolve it here
@@ -68,7 +153,7 @@ Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI
         $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
         $msg = $result | Out-String
         Write-Warning $msg
-}
+    }
 
     AfterAll {
         #restore the previous location
@@ -359,16 +444,6 @@ Describe "Extended FileSystem Provider Tests for Get-ChildItem cmdlet" -Tags "CI
             $result.Count | Should -Be 13
             $result[0] | Should -BeOfType System.String
         }
-    }
-
-    It "Get-ChildItem -Path -Depth 2 -Name -Force !!!!!!!!" {
-        $result = Get-ChildItem -Path $rootDir -Depth 2 -Name -Force
-        $msg = $result | Out-String
-        Write-Warning $msg
-        Write-Warning ">>> $($result.Count)"
-        1 | Should -Be 2
-        $result.Count | Should -Be 14
-        $result[0] | Should -BeOfType System.String
     }
 
     Context 'Validate Get-ChildItem -Path -Filter' {
